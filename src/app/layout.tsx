@@ -1,1 +1,1 @@
-import "./globals.css"; export const metadata = { title: "SpainEstates - Элитная недвижимость в Испании", description: "Эксклюзивные объекты на средиземноморском побережье", }; export default function RootLayout({ children, }) { return ( <html lang="ru"><body>{children}</body></html> ); }
+import "./globals.css"; export const metadata = { title: "Spanish-Estate - Элитная недвижимость в Испании", description: "Эксклюзивные объекты на средиземноморском побережье", }; export default function RootLayout({ children, }) { return ( <html lang="ru"><body>{children}</body></html> ); }

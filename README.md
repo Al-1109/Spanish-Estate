@@ -1,3 +1,3 @@
-# SpainEstates AI-First Website
+# Spanish-Estate AI-First Website
 
 Элитная недвижимость в Испании с ИИ-консультантом - инновационный подход к продаже недвижимости.
