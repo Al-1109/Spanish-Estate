@@ -9,10 +9,81 @@
 
 ## Текущее состояние (обновлено: 2024-04-12)
 
-### Недавние обновления
+### Недавные обновления
 1. Добавлена интеграция с Supabase в качестве базы данных и системы аутентификации
-2. Созданы модели данных для объектов недвижимости и пользователей
-3. Реализована базовая конфигурация для подключения к Supabase
+2. Установлен Supabase CLI и связан с проектом
+3. Созданы модели данных для объектов недвижимости и пользователей
+4. Реализована базовая конфигурация для подключения к Supabase
+
+### Supabase конфигурация
+1. **Проект ID**: xnlzqurzapbdknbsbflw
+2. **URL проекта**: https://xnlzqurzapbdknbsbflw.supabase.co
+3. **Dashboard**: https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw
+4. **CLI**: Установлен и связан с проектом
+5. **Аутентификация**: Настроена через анонимный ключ и service role ключ
+6. **JWT Secret**: Настроен для декодирования JWT токенов
+7. **Схема базы данных**: Включает таблицы для недвижимости, пользователей и сообщений чата
+
+### Схема базы данных Supabase
+```sql
+-- Таблица недвижимости
+CREATE TABLE public.properties (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  price NUMERIC NOT NULL,
+  bedrooms INTEGER,
+  bathrooms INTEGER,
+  area NUMERIC,
+  location TEXT,
+  city TEXT,
+  province TEXT,
+  images TEXT[],
+  status TEXT DEFAULT 'available',
+  features TEXT[],
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Таблица профилей пользователей
+CREATE TABLE public.user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  name TEXT,
+  email TEXT,
+  phone TEXT,
+  role TEXT DEFAULT 'client',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Таблица сообщений чата
+CREATE TABLE public.chat_messages (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  message TEXT NOT NULL,
+  is_ai BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Инструкция по работе с Supabase
+1. **Доступ к Dashboard**: [https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw](https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw)
+2. **SQL Editor**: [https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw/sql/new](https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw/sql/new)
+3. **Аутентификация**: [https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw/auth/users](https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw/auth/users)
+4. **Таблицы**: [https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw/editor](https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw/editor)
+
+### Команды CLI для работы с Supabase
+```bash
+# Связать проект
+supabase link --project-ref xnlzqurzapbdknbsbflw -p 'xyzpo9-deqcIk-fatcaw'
+
+# Применить миграции
+supabase db push
+
+# Получить схему из удаленной БД
+supabase db pull
+
+# Посмотреть статус
+supabase status
+```
 
 ### Важные особенности конфигурации
 1. Next.js запускается как демон-процесс (фоновый процесс) на MacOS
@@ -161,10 +232,35 @@ module.exports = {
 - Реализована базовая конфигурация подключения к Supabase
 
 ## План дальнейшей работы
-- Создание аккаунта и проекта в Supabase
-- Настройка таблиц и схемы данных в Supabase
-- Настройка аутентификации через Supabase Auth
-- Разработка компонентов интерфейса
-- Создание функциональности для управления объектами недвижимости
-- Интеграция ИИ-консультанта
-- Разработка чата для пользователей с ИИ-консультантом 
+- Выполнить миграцию схемы базы данных через Supabase CLI или SQL Editor
+- Настроить аутентификацию через Supabase Auth
+- Создать API роуты для взаимодействия с Supabase
+- Разработать компоненты интерфейса для работы с недвижимостью
+- Реализовать функционал админ-панели для управления объектами недвижимости
+- Интегрировать ИИ-консультанта с использованием Supabase для хранения сообщений
+- Разработать чат для пользователей с ИИ-консультантом
+
+## Инструкция по развертыванию
+1. Клонировать репозиторий
+   ```bash
+   git clone https://github.com/Al-1109/Spanish-Estate.git
+   cd Spanish-Estate
+   ```
+
+2. Установить зависимости
+   ```bash
+   npm install
+   ```
+
+3. Создать файл `.env.local` со следующим содержимым:
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=https://xnlzqurzapbdknbsbflw.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhubHpxdXJ6YXBiZGtuYnNiZmx3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ0NzM5ODEsImV4cCI6MjA2MDA0OTk4MX0.oqK69NF7VDDoqYg8suZXzvTqV0mqB0eN15NpQBrjUj4
+   ```
+
+4. Запустить разработческий сервер
+   ```bash
+   npm run dev
+   ```
+
+5. Открыть [http://localhost:3000](http://localhost:3000) в браузере 
