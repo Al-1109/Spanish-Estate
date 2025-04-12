@@ -27,7 +27,7 @@
 ### Скрипты в package.json
 ```json
 "scripts": {
-  "dev": "pkill -f node || true && nohup next dev > next.log 2>&1 &",
+  "dev": "pkill -f node || true && next dev",
   "build": "next build",
   "start": "next start",
   "lint": "next lint"
@@ -36,8 +36,8 @@
 
 ### Структура проекта
 - Используется новая структура Next.js 13 с директорией `app/`
-- Настроен Tailwind CSS
-- Настроен PostCSS
+- Настроен Tailwind CSS для стилизации
+- Настроен PostCSS для обработки CSS
 - Настроена TypeScript конфигурация
 
 ### Как работать с сервером
@@ -92,7 +92,7 @@ Spanish-Estate/
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "pkill -f node || true && nohup next dev > next.log 2>&1 &",
+    "dev": "pkill -f node || true && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -143,6 +143,11 @@ module.exports = {
 - **Последний коммит**: Стабильная конфигурация с фоновым процессом Next.js
 - **Ветка**: main
 - **Доступ**: SSH ключ настроен для пользователя Al-1109
+- **SSH конфигурация**:
+  - Тип ключа: ED25519
+  - Файлы ключей: `~/.ssh/id_ed25519` (приватный) и `~/.ssh/id_ed25519.pub` (публичный)
+  - Статус: Успешно аутентифицирован на GitHub
+  - Проверка: `ssh -T git@github.com` возвращает успешную аутентификацию
 
 ## Локальный доступ
 - **URL**: http://localhost:3000
@@ -153,6 +158,8 @@ module.exports = {
 1. Проект настроен под использование русского языка (lang="ru" в layout.tsx)
 2. Сервер запускается как демон-процесс с сохранением логов в next.log
 3. Используется стабильная версия Next.js 13.4.19 с соответствующей конфигурацией
+4. Tailwind CSS используется для стилизации компонентов
+5. PostCSS настроен для обработки CSS
 
 ## Что сделано
 - Настроен базовый проект на Next.js с TypeScript
