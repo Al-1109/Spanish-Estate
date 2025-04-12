@@ -7,6 +7,45 @@
 - **GitHub репозиторий**: [https://github.com/Al-1109/Spanish-Estate](https://github.com/Al-1109/Spanish-Estate)
 - **Статус**: Проект находится на начальной стадии разработки
 
+## Текущее стабильное состояние (2024-02-19)
+
+### Важные особенности конфигурации
+1. Next.js запускается как демон-процесс (фоновый процесс) на MacOS
+2. Используется команда `nohup` для предотвращения завершения процесса при закрытии терминала
+3. Логи сервера сохраняются в файл `next.log`
+4. Процесс не зависит от состояния терминала и продолжает работать даже при сворачивании окна
+
+### Версии пакетов
+- Next.js: 13.4.19
+- React: 18.2.0
+- React DOM: 18.2.0
+- TypeScript: 5.0.4
+
+### Скрипты в package.json
+```json
+"scripts": {
+  "dev": "pkill -f node || true && nohup next dev > next.log 2>&1 &",
+  "build": "next build",
+  "start": "next start",
+  "lint": "next lint"
+}
+```
+
+### Структура проекта
+- Используется новая структура Next.js 13 с директорией `app/`
+- Настроен Tailwind CSS
+- Настроен PostCSS
+- Настроена TypeScript конфигурация
+
+### Как работать с сервером
+1. Запуск: `npm run dev` (запускает сервер в фоновом режиме)
+2. Просмотр логов: `tail -f next.log`
+3. Остановка сервера: `pkill -f node`
+
+### Известные проблемы
+- Нет известных проблем в текущей конфигурации
+- Сервер стабильно работает в фоновом режиме
+
 ## Конфигурация окружения
 - **Node.js**: v22.14.0
 - **Next.js**: v15.3.0
@@ -53,7 +92,7 @@ Spanish-Estate/
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "next dev"
+    "dev": "pkill -f node || true && nohup next dev > next.log 2>&1 &"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.3",
