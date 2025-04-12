@@ -14,19 +14,51 @@
 2. Установлен Supabase CLI и связан с проектом
 3. Созданы модели данных для объектов недвижимости и пользователей
 4. Реализована базовая конфигурация для подключения к Supabase
+5. ✅ Успешно создана и протестирована таблица properties
+6. ✅ Настроено и протестировано подключение к Supabase через клиентскую библиотеку
+7. ✅ Реализован базовый компонент для отображения списка недвижимости
 
-### Supabase конфигурация
-1. **Проект ID**: xnlzqurzapbdknbsbflw
-2. **URL проекта**: https://xnlzqurzapbdknbsbflw.supabase.co
-3. **Dashboard**: https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw
-4. **CLI**: Установлен и связан с проектом
-5. **Аутентификация**: Настроена через анонимный ключ и service role ключ
-6. **JWT Secret**: Настроен для декодирования JWT токенов
-7. **Схема базы данных**: Включает таблицы для недвижимости, пользователей и сообщений чата
+### Критические детали подключения
+1. **Supabase проект**:
+   - Project ID: xnlzqurzapbdknbsbflw
+   - URL: https://xnlzqurzapbdknbsbflw.supabase.co
+   - Dashboard: https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw
 
-### Схема базы данных Supabase
+2. **Необходимые переменные окружения** (.env.local):
+   ```bash
+   # Публичные ключи (доступны на клиенте)
+   NEXT_PUBLIC_SUPABASE_URL=https://xnlzqurzapbdknbsbflw.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+   # Секретные ключи (только для серверной части)
+   SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   SUPABASE_JWT_SECRET=Gixv86DN+mg2ZlygXXVd/xQtowLgLiYoCiXCfxlxelf2JiaCf1qJOwDP104/ZJZ7ochO0kFKk6r0KjLrKq26sA==
+   SUPABASE_PROJECT_ID=xnlzqurzapbdknbsbflw
+   SUPABASE_DB_PASSWORD=xyzpo9-deqcIk-fatcaw
+   SUPABASE_CLI_KEY=ee071c07
+   ```
+
+3. **Установленные зависимости**:
+   ```json
+   {
+     "dependencies": {
+       "@supabase/supabase-js": "^2.39.3",
+       "bufferutil": "latest",
+       "utf-8-validate": "latest",
+       "ws": "latest"
+     }
+   }
+   ```
+
+### Тестирование подключения
+1. ✅ Создана тестовая страница: `/test-supabase`
+2. ✅ Реализовано подключение к Supabase через клиентскую библиотеку
+3. ✅ Настроены права доступа для анонимных пользователей
+4. ✅ Успешно протестировано получение данных из таблицы properties
+
+### Схема базы данных
 ```sql
--- Таблица недвижимости
+-- Таблица недвижимости (создана и протестирована)
 CREATE TABLE public.properties (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
@@ -44,25 +76,20 @@ CREATE TABLE public.properties (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Таблица профилей пользователей
-CREATE TABLE public.user_profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id),
-  name TEXT,
-  email TEXT,
-  phone TEXT,
-  role TEXT DEFAULT 'client',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Таблица сообщений чата
-CREATE TABLE public.chat_messages (
-  id SERIAL PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id),
-  message TEXT NOT NULL,
-  is_ai BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- Настройки безопасности
+ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable read access for all users" ON public.properties
+    FOR SELECT USING (true);
 ```
+
+### Supabase конфигурация
+1. **Проект ID**: xnlzqurzapbdknbsbflw
+2. **URL проекта**: https://xnlzqurzapbdknbsbflw.supabase.co
+3. **Dashboard**: https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw
+4. **CLI**: Установлен и связан с проектом
+5. **Аутентификация**: Настроена через анонимный ключ и service role ключ
+6. **JWT Secret**: Настроен для декодирования JWT токенов
+7. **Схема базы данных**: Включает таблицы для недвижимости, пользователей и сообщений чата
 
 ### Инструкция по работе с Supabase
 1. **Доступ к Dashboard**: [https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw](https://supabase.com/dashboard/project/xnlzqurzapbdknbsbflw)
@@ -159,7 +186,10 @@ Spanish-Estate/
     "@supabase/supabase-js": "^2.39.3",
     "next": "13.4.19",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "bufferutil": "latest",
+    "utf-8-validate": "latest",
+    "ws": "latest"
   },
   "devDependencies": {
     "@types/node": "20.5.9",
