@@ -1,8 +1,7 @@
 import { useState } from 'react';
+import ChatInterface from '../../../components/ui/ChatInterface';
 
 export const AIConsultantSection = () => {
-  const [chatMessage, setChatMessage] = useState('');
-
   const quickQuestions = [
     'Какую недвижимость я могу купить с бюджетом 300 000€?',
     'Какие документы нужны для покупки?',
@@ -19,43 +18,8 @@ export const AIConsultantSection = () => {
           процессе покупки, ВНЖ и многом другом
         </p>
         
-        <div className="w-full bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="h-64 p-4 bg-gray-50 overflow-y-auto">
-            <div className="flex items-start mb-4">
-              <div className="bg-blue-100 rounded-lg py-2 px-4 max-w-md">
-                <p className="text-blue-900">
-                  Здравствуйте! Я ИИ-консультант Spanish-Estate. Чем я могу вам помочь?
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-4 border-t">
-            <div className="flex flex-wrap gap-2 mb-4">
-              {quickQuestions.map((question, index) => (
-                <button 
-                  key={index}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full px-3 py-1 transition"
-                  onClick={() => setChatMessage(question)}
-                >
-                  {question}
-                </button>
-              ))}
-            </div>
-            
-            <div className="flex w-full">
-              <input
-                type="text"
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                placeholder="Введите ваш вопрос..."
-                className="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button className="bg-blue-900 text-white px-4 py-2 rounded-r-md hover:bg-blue-800 transition">
-                Отправить
-              </button>
-            </div>
-          </div>
+        <div className="w-full bg-white rounded-lg shadow-lg overflow-hidden" style={{ height: '500px' }}>
+          <ChatInterface quickQuestions={quickQuestions} />
         </div>
       </div>
     </section>

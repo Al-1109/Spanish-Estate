@@ -17,7 +17,7 @@ const MainPage = () => {
     }
     setMobileMenuOpen(false); // Закрываем мобильное меню, если оно открыто
   };
-
+  
   const properties = [
     {
       id: 1,
@@ -176,24 +176,12 @@ const MainPage = () => {
           <div 
             className="absolute inset-0 bg-cover bg-center"
             style={{ 
-              backgroundImage: `url('https://placehold.co/1920x1080')`,
-              filter: 'brightness(0.7)'
+              backgroundImage: `url('/images/banner.jpg')`,
+              filter: 'brightness(0.85)'
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black opacity-40" />
           <div className="container mx-auto px-4 h-full flex flex-col justify-center items-center relative z-10 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">Роскошная недвижимость в Испании</h1>
-            <p className="text-xl md:text-2xl text-white mb-8 max-w-2xl">Откройте для себя эксклюзивные объекты на побережье Средиземного моря</p>
-            <div className="relative w-full max-w-lg">
-              <input 
-                type="text" 
-                placeholder="Поиск недвижимости..." 
-                className="w-full px-6 py-4 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-blue-900 text-white p-2 rounded-full hover:bg-blue-800 transition">
-                <Search className="w-5 h-5" />
-              </button>
-            </div>
           </div>
         </section>
         
