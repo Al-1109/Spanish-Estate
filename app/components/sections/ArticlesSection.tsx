@@ -1,6 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 
-export const ArticlesSection = () => {
+export function ArticlesSection() {
   const articles = [
     {
       id: 1,
@@ -52,4 +52,4 @@ export const ArticlesSection = () => {
       </div>
     </section>
   );
-}; 
+} 

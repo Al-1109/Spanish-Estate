@@ -1,4 +1,4 @@
-export const FooterSection = () => {
+export function FooterSection() {
   return (
     <footer className="footer">
       <div className="container">
@@ -57,4 +57,4 @@ export const FooterSection = () => {
       </div>
     </footer>
   );
-}; 
+} 
