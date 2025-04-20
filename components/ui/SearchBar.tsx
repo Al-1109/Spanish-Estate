@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
+import { Search } from 'lucide-react';
 
 export const SearchBar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,7 +38,7 @@ export const SearchBar: React.FC = () => {
             focus:outline-none
           `}
         />
-        <MagnifyingGlassIcon 
+        <Search 
           className={`
             absolute 
             left-4 
