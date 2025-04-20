@@ -1,1 +1,17 @@
-export default function Home() { return ( <main className="flex min-h-screen flex-col items-center justify-center p-24"><h1 className="text-4xl font-bold mb-4">Spanish-Estate</h1><p className="text-xl mb-8">Элитная недвижимость в Испании с ИИ-консультантом</p><div className="border p-4 rounded-md">Интерфейс находится в разработке</div></main> ); }
+import { HeroSection } from '@/components/sections/HeroSection';
+import { FeaturesSection } from '@/components/sections/FeaturesSection';
+import { PropertiesSection } from '@/components/sections/PropertiesSection';
+import { AIConsultantSection } from '@/components/sections/AIConsultantSection';
+import { Footer } from '@/components/layout/Footer';
+
+export default function Home() {
+  return (
+    <main className="min-h-screen">
+      <HeroSection />
+      <FeaturesSection />
+      <PropertiesSection />
+      <AIConsultantSection />
+      <Footer />
+    </main>
+  );
+}

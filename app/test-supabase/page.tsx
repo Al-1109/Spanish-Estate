@@ -15,20 +15,37 @@ export default function TestSupabase() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [connectionInfo, setConnectionInfo] = useState({
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || 'Не указан',
+    hasKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Ключ указан' : 'Ключ отсутствует'
+  });
 
   useEffect(() => {
     async function fetchProperties() {
       try {
+        console.log('Попытка подключения к Supabase:', {
+          url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+          hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        });
+        
+        // Проверяем работу через простой запрос
         const { data, error } = await supabase
           .from('properties')
-          .select('*');
+          .select('count')
+          .single();
 
-        if (error) throw error;
+        // Если первый запрос успешен, получаем все данные
+        if (!error) {
+          const result = await supabase.from('properties').select('*');
+          if (result.error) throw result.error;
+          setProperties(result.data || []);
+        } else {
+          throw error;
+        }
         
-        setProperties(data || []);
         setLoading(false);
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message || 'Неизвестная ошибка');
         setLoading(false);
         console.error('Ошибка при получении данных:', err);
       }
@@ -38,7 +55,16 @@ export default function TestSupabase() {
   }, []);
 
   if (loading) {
-    return <div className="p-4">Загрузка данных...</div>;
+    return (
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-4">Тест подключения к Supabase</h1>
+        <div>Загрузка данных...</div>
+        <div className="mt-4 text-sm text-gray-600">
+          <p>URL: {connectionInfo.url}</p>
+          <p>Ключ API: {connectionInfo.hasKey}</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -47,6 +73,13 @@ export default function TestSupabase() {
         <h1 className="text-2xl font-bold mb-4">Тест подключения к Supabase</h1>
         <div className="text-red-500">
           <p>Ошибка: {error}</p>
+          <div className="mt-4 text-sm text-gray-600">
+            <p>URL: {connectionInfo.url}</p>
+            <p>Ключ API: {connectionInfo.hasKey}</p>
+            <p className="mt-2">
+              Проверьте консоль браузера (F12) для дополнительной информации.
+            </p>
+          </div>
         </div>
       </div>
     );
