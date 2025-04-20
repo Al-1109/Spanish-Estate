@@ -9,6 +9,15 @@ const MainPage = () => {
   const [activePropertyIndex, setActivePropertyIndex] = useState(0);
   const [chatMessage, setChatMessage] = useState('');
   
+  const scrollToConsultant = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const element = document.getElementById('ai-consultant');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setMobileMenuOpen(false); // Закрываем мобильное меню, если оно открыто
+  };
+
   const properties = [
     {
       id: 1,
@@ -105,7 +114,6 @@ const MainPage = () => {
           
           <div className="hidden md:flex items-center space-x-6">
             <nav className="flex space-x-6">
-              <a href="#" className="text-gray-700 hover:text-blue-900">О нас</a>
               <a href="#" className="text-gray-700 hover:text-blue-900">Каталог</a>
               <a href="#" className="text-gray-700 hover:text-blue-900">FAQ</a>
               <a href="#" className="text-gray-700 hover:text-blue-900">Статьи</a>
@@ -122,9 +130,9 @@ const MainPage = () => {
                 </select>
               </div>
               
-              <button className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition">
+              <a href="#ai-consultant" onClick={scrollToConsultant} className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition">
                 ИИ-консультант
-              </button>
+              </a>
             </div>
           </div>
           
@@ -137,7 +145,6 @@ const MainPage = () => {
         {mobileMenuOpen && (
           <div className="md:hidden bg-white py-4 px-4 shadow-lg">
             <nav className="flex flex-col space-y-3">
-              <a href="#" className="text-gray-700 hover:text-blue-900">О нас</a>
               <a href="#" className="text-gray-700 hover:text-blue-900">Каталог</a>
               <a href="#" className="text-gray-700 hover:text-blue-900">FAQ</a>
               <a href="#" className="text-gray-700 hover:text-blue-900">Статьи</a>
@@ -154,9 +161,9 @@ const MainPage = () => {
                 </select>
               </div>
               
-              <button className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition">
+              <a href="#ai-consultant" onClick={scrollToConsultant} className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition">
                 ИИ-консультант
-              </button>
+              </a>
             </div>
           </div>
         )}
