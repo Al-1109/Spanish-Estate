@@ -7,8 +7,8 @@ import { HeroSection } from './components/sections/HeroSection';
 import { FeaturesSection } from './components/sections/FeaturesSection';
 import { PropertiesSection } from './components/sections/PropertiesSection';
 import { AIConsultantSection } from './components/sections/AIConsultantSection';
-import { ArticlesSection } from './components/sections/ArticlesSection';
-import { FooterSection } from './components/sections/FooterSection';
+import { ArticlesSection } from '../components/sections/ArticlesSection';
+import { FooterSection } from '../components/sections/FooterSection';
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
