@@ -3,31 +3,32 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "pkill -f node || true && next dev",
+    "next-dev": "next dev",
+    "dev": "mkdir -p logs && chmod +x scripts/*.sh && ./scripts/start-dev.sh",
+    "stop": "./scripts/stop-dev.sh",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.4",
-    "dotenv": "^16.5.0",
+    "@heroicons/react": "^2.2.0",
+    "@supabase/supabase-js": "^2.39.3",
+    "bufferutil": "latest",
+    "framer-motion": "^12.7.4",
+    "lucide-react": "^0.501.0",
     "next": "13.4.19",
-    "pg": "^8.14.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "ws": "^8.18.1"
+    "utf-8-validate": "latest",
+    "ws": "latest"
   },
   "devDependencies": {
     "@types/node": "20.5.9",
     "@types/react": "18.2.21",
     "@types/react-dom": "18.2.7",
-    "autoprefixer": "10.4.15",
-    "postcss": "8.4.29",
-    "tailwindcss": "3.3.3",
+    "autoprefixer": "^10.4.15",
+    "postcss": "^8.4.29",
+    "tailwindcss": "^3.3.3",
     "typescript": "5.0.4"
-  },
-  "optionalDependencies": {
-    "bufferutil": "^4.0.9",
-    "utf-8-validate": "^6.0.5"
   }
 }
