@@ -1,13 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Menu, X, ChevronDown, ChevronRight, ChevronLeft, MessageSquare, Wallet, Globe, Home, Mail, Phone, Instagram, Facebook, Twitter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Menu, X, ChevronDown, ChevronRight, ChevronLeft, MessageSquare, Wallet, Globe, Home, Mail, Phone, Instagram, Facebook, Twitter, ArrowRight, MapPin, BedDouble, Bath } from 'lucide-react';
 import { AIConsultantSection } from './components/sections/AIConsultantSection';
 
 const MainPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePropertyIndex, setActivePropertyIndex] = useState(0);
+  const [expandedPropertyId, setExpandedPropertyId] = useState<number | null>(null);
   const [chatMessage, setChatMessage] = useState('');
+  
+  // Функция для обработки открытия карточки
+  const handleExpandProperty = (propertyId: number) => {
+    // Если эта карточка уже открыта - ничего не делаем
+    if (expandedPropertyId === propertyId) return;
+    
+    // Устанавливаем ID новой открытой карточки
+    setExpandedPropertyId(propertyId);
+    
+    // Прокручиваем к нужной позиции
+    setTimeout(() => {
+      // Получаем ссылку на карточку по ID
+      const expandedCard = document.querySelector(`[data-property-id="${propertyId}"]`);
+      if (expandedCard) {
+        // Получаем позицию верхней части карточки
+        const cardTop = expandedCard.getBoundingClientRect().top + window.pageYOffset;
+        // Прокручиваем так, чтобы верх карточки был немного ниже верха экрана
+        window.scrollTo({ top: cardTop - 100, behavior: 'smooth' });
+      }
+    }, 150); // Небольшая задержка для уверенности, что DOM обновился
+  };
   
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     e.preventDefault();
@@ -18,36 +40,71 @@ const MainPage = () => {
     setMobileMenuOpen(false);
   };
   
+  const scrollToAIConsultant = (propertyTitle: string, location: string) => {
+    setChatMessage(`Меня заинтересовал объект по адресу: ${location}. Расскажите подробнее о нем.`);
+    const element = document.getElementById('ai-consultant');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+  
   const properties = [
     {
       id: 1,
       title: 'Роскошная вилла на побережье',
       location: 'Коста Брава, Бланес',
-      price: '850 000 €',
-      area: '450 м²',
+      price: '850 000',
+      area: '450',
       bedrooms: 5,
       bathrooms: 3,
-      images: ['/api/placeholder/600/400', '/api/placeholder/600/400', '/api/placeholder/600/400']
+      images: ['/api/placeholder/600/400', '/api/placeholder/600/400', '/api/placeholder/600/400'],
+      description: 'Великолепная вилла с панорамным видом на море, расположенная в престижном районе Коста Брава. Просторные комнаты, современный дизайн и высококачественная отделка.',
+      features: [
+        'Панорамный вид на море',
+        'Частный бассейн',
+        'Гараж на 2 машины',
+        'Садовник включен в обслуживание',
+        'Система умный дом',
+        'Полностью меблирована'
+      ]
     },
     {
       id: 2,
       title: 'Современные апартаменты в центре',
-      location: 'Барселона',
-      price: '350 000 €',
-      area: '85 м²',
+      location: 'Торревьеха, район La Mata',
+      price: '165 000',
+      area: '85',
       bedrooms: 2,
       bathrooms: 2,
-      images: ['/api/placeholder/600/400', '/api/placeholder/600/400', '/api/placeholder/600/400']
+      images: ['/api/placeholder/600/400', '/api/placeholder/600/400', '/api/placeholder/600/400'],
+      description: 'Светлые и просторные апартаменты в самом сердце города. В пешей доступности пляж, магазины, рестораны и вся необходимая инфраструктура.',
+      features: [
+        'Первая линия моря',
+        'Закрытая территория',
+        'Подземный паркинг',
+        'Кондиционирование',
+        'Общий бассейн',
+        'Терраса'
+      ]
     },
     {
       id: 3,
       title: 'Загородный дом с садом',
-      location: 'Мадрид',
-      price: '450 000 €',
-      area: '320 м²',
+      location: 'Торревьеха, район Punta Prima',
+      price: '450 000',
+      area: '320',
       bedrooms: 4,
       bathrooms: 3,
-      images: ['/api/placeholder/600/400', '/api/placeholder/600/400', '/api/placeholder/600/400']
+      images: ['/api/placeholder/600/400', '/api/placeholder/600/400', '/api/placeholder/600/400'],
+      description: 'Уютный семейный дом в тихом районе с большим садом и зоной барбекю. Идеально подходит для постоянного проживания или сдачи в аренду.',
+      features: [
+        'Большой сад',
+        'Зона барбекю',
+        'Солярий на крыше',
+        'Кладовая',
+        'Теплые полы',
+        'Автоматический полив'
+      ]
     }
   ];
 
@@ -118,7 +175,7 @@ const MainPage = () => {
           <div className="hidden md:flex items-center space-x-6">
             <nav className="flex space-x-6">
               <a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="text-gray-700 hover:text-blue-900">Каталог</a>
-              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">FAQ</a>
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">ИИ-консультант</a>
               <a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="text-gray-700 hover:text-blue-900">Статьи</a>
               <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">Контакты</a>
             </nav>
@@ -149,7 +206,7 @@ const MainPage = () => {
           <div className="md:hidden bg-white py-4 px-4 shadow-lg">
             <nav className="flex flex-col space-y-3">
               <a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="text-gray-700 hover:text-blue-900">Каталог</a>
-              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">FAQ</a>
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">ИИ-консультант</a>
               <a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="text-gray-700 hover:text-blue-900">Статьи</a>
               <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">Контакты</a>
             </nav>
@@ -239,68 +296,161 @@ const MainPage = () => {
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12 text-blue-900">Наши лучшие предложения</h2>
             
-            <div className="relative">
-              <div className="flex overflow-x-hidden">
-                <div className="flex transition-transform duration-300" style={{ transform: `translateX(-${activePropertyIndex * 100}%)` }}>
-                  {properties.map((property, index) => (
-                    <div key={property.id} className="w-full flex-shrink-0 px-4">
-                      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                        <div className="relative h-64 bg-gray-200">
-                          <img src={`https://placehold.co/600x400`} alt={property.title} className="w-full h-full object-cover" />
-                          <div className="absolute bottom-4 right-4 flex space-x-2">
-                            <span className="w-2 h-2 rounded-full bg-white opacity-50"></span>
-                            <span className="w-2 h-2 rounded-full bg-white"></span>
-                            <span className="w-2 h-2 rounded-full bg-white opacity-50"></span>
-                          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {properties.map((property) => (
+                <div 
+                  key={property.id} 
+                  data-property-id={property.id}
+                  className={`bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 ${
+                    expandedPropertyId === property.id ? 'lg:col-span-3 md:col-span-2 order-last' : ''
+                  }`}
+                >
+                  {expandedPropertyId === property.id ? (
+                    <>
+                      {/* Большой блок с фото/слайдером */}
+                      <div className="relative h-[600px]">
+                        <img 
+                          src={property.images[0]} 
+                          alt={property.title} 
+                          className="w-full h-full object-cover" 
+                        />
+                        <div className="absolute bottom-6 right-6 flex space-x-3">
+                          {property.images.map((_, index) => (
+                            <span 
+                              key={index}
+                              className={`w-3 h-3 rounded-full bg-white ${
+                                index === 0 ? '' : 'opacity-50'
+                              }`}
+                            />
+                          ))}
                         </div>
-                        <div className="p-6">
-                          <h3 className="text-xl font-bold mb-2 text-blue-900">{property.title}</h3>
-                          <p className="text-gray-500 mb-4">{property.location}</p>
-                          <div className="flex justify-between mb-6">
-                            <span className="text-2xl font-bold text-blue-900">{property.price}</span>
-                            <div className="flex space-x-4 text-gray-600">
-                              <span>{property.area}</span>
-                              <span>{property.bedrooms} спален</span>
-                              <span>{property.bathrooms} ванных</span>
+                      </div>
+
+                      <div className="p-6">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="text-2xl font-bold text-blue-900 mb-2">
+                              {property.price} €
+                            </div>
+                            <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                              {property.title}
+                            </h3>
+                            <div className="flex items-center text-gray-600">
+                              <MapPin size={16} className="mr-1" />
+                              <span>{property.location}</span>
                             </div>
                           </div>
-                          <button className="w-full bg-blue-900 text-white py-3 rounded-md hover:bg-blue-800 transition">
-                            Подробнее
+                        </div>
+
+                        <div className="flex justify-between text-gray-700 my-6">
+                          <div className="flex items-center whitespace-nowrap">
+                            <Home size={18} className="mr-2" />
+                            <span>{property.area} м²</span>
+                          </div>
+                          <div className="flex items-center whitespace-nowrap">
+                            <BedDouble size={18} className="mr-2" />
+                            <span>{property.bedrooms} спальни</span>
+                          </div>
+                          <div className="flex items-center whitespace-nowrap">
+                            <Bath size={18} className="mr-2" />
+                            <span>{property.bathrooms} ванные</span>
+                          </div>
+                        </div>
+                        
+                        <p className="text-gray-600 mb-6">{property.description}</p>
+                        
+                        <div className="mb-6">
+                          <h4 className="text-lg font-semibold text-blue-900 mb-3">Особенности:</h4>
+                          <ul className="grid grid-cols-2 gap-3">
+                            {property.features.map((feature, index) => (
+                              <li key={index} className="flex items-center text-gray-600">
+                                <span className="w-2 h-2 bg-blue-900 rounded-full mr-2" />
+                                {feature}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="border-t pt-6 flex justify-between items-center">
+                          <button 
+                            onClick={() => setExpandedPropertyId(null)}
+                            className="bg-gray-100 hover:bg-gray-200 text-blue-900 px-6 py-3 rounded-md transition flex items-center"
+                          >
+                            Свернуть <ArrowRight size={16} className="ml-2" />
+                          </button>
+                          
+                          <button 
+                            onClick={() => scrollToAIConsultant(property.title, property.location)}
+                            className="bg-blue-900 text-white px-6 py-3 rounded-md hover:bg-blue-800 transition flex items-center"
+                          >
+                            <MessageSquare size={16} className="mr-2" />
+                            Задать вопрос об объекте
                           </button>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    </>
+                  ) : (
+                    <>
+                      <div className="relative h-64">
+                        <img 
+                          src={property.images[0]} 
+                          alt={property.title} 
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                      
+                      <div className="p-6 flex flex-col" style={{ height: 'calc(100% - 16rem)' }}>
+                        <div className="text-2xl font-bold text-blue-900 mb-2">
+                          {property.price} €
+                        </div>
+                        
+                        <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                          {property.title}
+                        </h3>
+                        
+                        <div className="flex items-center text-gray-600 mb-4">
+                          <MapPin size={16} className="mr-1" />
+                          <span>{property.location}</span>
+                        </div>
+                        
+                        <p className="text-gray-600 mb-4 line-clamp-2">
+                          {property.description}
+                        </p>
+                        
+                        <div className="flex justify-between text-gray-700 mb-4">
+                          <div className="flex items-center whitespace-nowrap">
+                            <Home size={18} className="mr-2" />
+                            <span>{property.area} м²</span>
+                          </div>
+                          <div className="flex items-center whitespace-nowrap">
+                            <BedDouble size={18} className="mr-2" />
+                            <span>{property.bedrooms} спальни</span>
+                          </div>
+                          <div className="flex items-center whitespace-nowrap">
+                            <Bath size={18} className="mr-2" />
+                            <span>{property.bathrooms} ванные</span>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-auto flex justify-end">
+                          <button 
+                            onClick={() => handleExpandProperty(property.id)}
+                            className="bg-blue-900 text-white px-6 py-3 rounded-md hover:bg-blue-800 transition flex items-center"
+                          >
+                            Подробнее <ArrowRight size={16} className="ml-2" />
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-              </div>
-              
-              <button 
-                className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow-md"
-                onClick={() => setActivePropertyIndex(Math.max(0, activePropertyIndex - 1))}
-                disabled={activePropertyIndex === 0}
-              >
-                <ChevronLeft className={`w-6 h-6 ${activePropertyIndex === 0 ? 'text-gray-300' : 'text-blue-900'}`} />
-              </button>
-              
-              <button 
-                className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow-md"
-                onClick={() => setActivePropertyIndex(Math.min(properties.length - 1, activePropertyIndex + 1))}
-                disabled={activePropertyIndex === properties.length - 1}
-              >
-                <ChevronRight className={`w-6 h-6 ${activePropertyIndex === properties.length - 1 ? 'text-gray-300' : 'text-blue-900'}`} />
-              </button>
-            </div>
-            
-            <div className="text-center mt-12">
-              <button className="bg-blue-900 text-white px-6 py-3 rounded-md hover:bg-blue-800 transition">
-                Смотреть все предложения
-              </button>
+              ))}
             </div>
           </div>
         </section>
         
         {/* Блок ИИ-консультанта */}
-        <AIConsultantSection />
+        <AIConsultantSection chatMessage={chatMessage} />
         
         {/* Блок статей/вики */}
         <section id="articles" className="py-16 bg-white">
@@ -351,7 +501,7 @@ const MainPage = () => {
             <div>
               <h3 className="text-xl font-bold mb-4">Навигация</h3>
               <ul className="space-y-2 text-blue-100">
-                <li><a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="hover:text-white">Каталог недвижимости</a></li>
+                <li><a href="/catalog" className="hover:text-white">Каталог недвижимости</a></li>
                 <li><a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="hover:text-white">Часто задаваемые вопросы</a></li>
                 <li><a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="hover:text-white">Статьи</a></li>
                 <li><a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="hover:text-white">Отправить сообщение</a></li>
