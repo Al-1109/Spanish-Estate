@@ -27,7 +27,7 @@ export default function ChatInterface({ quickQuestions }: ChatInterfaceProps) {
           id: 0,
           created_at: new Date().toISOString(),
           user_id: ANONYMOUS_USER_ID,
-          message: 'Здравствуйте! Я ИИ-консультант Spanish-Estate. Чем я могу вам помочь?',
+          message: 'Здравствуйте! Я ИИ-консультант Mirasol Estate. Чем я могу вам помочь?',
           is_ai: true,
         }]);
       } else {

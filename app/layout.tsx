@@ -9,8 +9,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata = {
-  title: 'Spanish Estate - Элитная недвижимость в Испании',
-  description: 'Элитная недвижимость в Испании с ИИ-консультантом',
+  title: 'Mirasol Estate - Недвижимость в Испании от собственников',
+  description: 'Продажа недвижимости в Испании от прямых собственников с полным сопровождением',
 };
 
 export default function RootLayout({

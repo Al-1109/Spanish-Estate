@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, ChevronDown, ChevronRight, ChevronLeft, MessageSquare, Search, Globe, Home, Mail, Phone, Instagram, Facebook, Twitter } from 'lucide-react';
+import { Menu, X, ChevronDown, ChevronRight, ChevronLeft, MessageSquare, Wallet, Globe, Home, Mail, Phone, Instagram, Facebook, Twitter } from 'lucide-react';
 import { AIConsultantSection } from './components/sections/AIConsultantSection';
 
 const MainPage = () => {
@@ -9,13 +9,13 @@ const MainPage = () => {
   const [activePropertyIndex, setActivePropertyIndex] = useState(0);
   const [chatMessage, setChatMessage] = useState('');
   
-  const scrollToConsultant = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     e.preventDefault();
-    const element = document.getElementById('ai-consultant');
+    const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
-    setMobileMenuOpen(false); // Закрываем мобильное меню, если оно открыто
+    setMobileMenuOpen(false);
   };
   
   const properties = [
@@ -78,23 +78,26 @@ const MainPage = () => {
   const advantages = [
     {
       icon: <MessageSquare className="w-10 h-10 text-blue-800" />,
-      title: 'ИИ-консультант 24/7',
-      description: 'Мгновенные ответы на все вопросы в любое время суток'
+      title: 'ИИ-консультант',
+      description: <div className="flex flex-col items-center">
+        <span className="text-2xl font-bold text-blue-900">24/7</span>
+        <span>Мгновенные ответы на все вопросы в любое время суток по вопросам покупки недвижимости в Испании</span>
+      </div>
     },
     {
       icon: <Home className="w-10 h-10 text-blue-800" />,
       title: 'Проверенные объекты',
-      description: 'Тщательная проверка каждого объекта недвижимости'
+      description: 'Полный пакет документов на объект недвижимости и отсутствие обременений. Все необходимые сертификаты'
     },
     {
-      icon: <Search className="w-10 h-10 text-blue-800" />,
-      title: 'Индивидуальный подход',
-      description: 'Персональный подбор недвижимости под ваши требования'
+      icon: <Wallet className="w-10 h-10 text-blue-800" />,
+      title: 'Экономическая выгода',
+      description: 'Мы продаем наши аппартаменты без агентских комиссий. Поэтому наши цены ниже рынка'
     },
     {
       icon: <Mail className="w-10 h-10 text-blue-800" />,
       title: 'Полное сопровождение',
-      description: 'Юридическая поддержка на всех этапах сделки'
+      description: 'Юридическая поддержка на всех этапах сделки, помощь в получении налогового номера в Испании, открытие счета, ипотека'
     }
   ];
 
@@ -114,10 +117,10 @@ const MainPage = () => {
           
           <div className="hidden md:flex items-center space-x-6">
             <nav className="flex space-x-6">
-              <a href="#" className="text-gray-700 hover:text-blue-900">Каталог</a>
-              <a href="#" className="text-gray-700 hover:text-blue-900">FAQ</a>
-              <a href="#" className="text-gray-700 hover:text-blue-900">Статьи</a>
-              <a href="#" className="text-gray-700 hover:text-blue-900">Контакты</a>
+              <a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="text-gray-700 hover:text-blue-900">Каталог</a>
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">FAQ</a>
+              <a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="text-gray-700 hover:text-blue-900">Статьи</a>
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">Контакты</a>
             </nav>
             
             <div className="flex items-center space-x-4">
@@ -130,7 +133,7 @@ const MainPage = () => {
                 </select>
               </div>
               
-              <a href="#ai-consultant" onClick={scrollToConsultant} className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition">
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition">
                 ИИ-консультант
               </a>
             </div>
@@ -145,10 +148,10 @@ const MainPage = () => {
         {mobileMenuOpen && (
           <div className="md:hidden bg-white py-4 px-4 shadow-lg">
             <nav className="flex flex-col space-y-3">
-              <a href="#" className="text-gray-700 hover:text-blue-900">Каталог</a>
-              <a href="#" className="text-gray-700 hover:text-blue-900">FAQ</a>
-              <a href="#" className="text-gray-700 hover:text-blue-900">Статьи</a>
-              <a href="#" className="text-gray-700 hover:text-blue-900">Контакты</a>
+              <a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="text-gray-700 hover:text-blue-900">Каталог</a>
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">FAQ</a>
+              <a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="text-gray-700 hover:text-blue-900">Статьи</a>
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">Контакты</a>
             </nav>
             
             <div className="mt-4 flex justify-between">
@@ -161,7 +164,7 @@ const MainPage = () => {
                 </select>
               </div>
               
-              <a href="#ai-consultant" onClick={scrollToConsultant} className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition">
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition">
                 ИИ-консультант
               </a>
             </div>
@@ -175,7 +178,7 @@ const MainPage = () => {
       <section 
         style={{ 
           height: '400px',
-          marginTop: '-5px', /* Отрицательное значение, чтобы устранить зазор */
+          marginTop: '-5px',
           position: 'relative',
           overflow: 'hidden'
         }}
@@ -193,19 +196,19 @@ const MainPage = () => {
       {/* Основной контент */}
       <main>
         {/* Блок презентации */}
-        <section className="pt-0 pb-6 bg-white" style={{ marginTop: '-10px' }}>
+        <section className="py-4 bg-white" style={{ marginTop: '-40px' }}>
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-8 text-blue-900">Элитная недвижимость в Испании</h2>
+            <div className="text-center mb-4">
+              <h2 className="text-3xl font-bold text-blue-900 mb-1">Продажа аппартаментов от собственника</h2>
+              <h3 className="text-2xl font-semibold text-blue-800">в быстро развивающемся курортном городе Торревьеха, Испания</h3>
+            </div>
             <div className="max-w-3xl mx-auto text-center">
-              <p className="text-lg text-gray-700 mb-6">
-                Mirasol Estate - это премиальный сервис по подбору и продаже элитной недвижимости в самых живописных уголках Испании. Мы специализируемся на эксклюзивных объектах, которые отвечают самым высоким стандартам качества и комфорта.
+              <p className="text-xl text-gray-800 font-medium leading-relaxed mb-3">
+                Mirasol Estate это семейный бизнес, мы продаем свои квартиры, которые были приобретены после тщательного отбора и содержатся в хорошем состоянии.
               </p>
-              <p className="text-lg text-gray-700 mb-8">
-                Наша команда экспертов поможет вам найти идеальный дом мечты и обеспечит полное сопровождение сделки, включая юридическую поддержку и помощь в получении ВНЖ.
+              <p className="text-xl text-gray-800 font-medium leading-relaxed">
+                Наши квартиры - это лучшее сочетание принципа "цена-качество" для потенциального покупателя. Аппартаменты отлично подходят как для постоянного проживания, так и для арендного бизнеса.
               </p>
-              <button className="bg-blue-900 text-white px-6 py-3 rounded-md hover:bg-blue-800 transition">
-                Узнать больше о нас
-              </button>
             </div>
           </div>
         </section>
@@ -224,10 +227,7 @@ const MainPage = () => {
                     {advantage.icon}
                   </div>
                   <h3 className="text-xl font-semibold mb-3 text-blue-900">{advantage.title}</h3>
-                  <p className="text-gray-600">{advantage.description}</p>
-                  <button className="mt-4 text-blue-900 flex items-center justify-center mx-auto hover:underline">
-                    Подробнее <ChevronDown className="w-4 h-4 ml-1" />
-                  </button>
+                  <div className="text-gray-600">{advantage.description}</div>
                 </div>
               ))}
             </div>
@@ -235,7 +235,7 @@ const MainPage = () => {
         </section>
         
         {/* Блок предложений недвижимости */}
-        <section className="py-16 bg-white">
+        <section id="properties" className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12 text-blue-900">Наши лучшие предложения</h2>
             
@@ -303,7 +303,7 @@ const MainPage = () => {
         <AIConsultantSection />
         
         {/* Блок статей/вики */}
-        <section className="py-16 bg-white">
+        <section id="articles" className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12 text-blue-900">Полезная информация</h2>
             
@@ -335,11 +335,11 @@ const MainPage = () => {
       {/* Футер */}
       <footer className="bg-blue-900 text-white py-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div>
               <h3 className="text-xl font-bold mb-4">Mirasol Estate</h3>
               <p className="text-blue-100 mb-4">
-                Элитная недвижимость в Испании с полным сопровождением и поддержкой на всех этапах.
+                Продажа недвижимости в Испании от прямых собственников с полным сопровождением и поддержкой на всех этапах на вашем языке.
               </p>
               <div className="flex space-x-4 text-blue-100">
                 <a href="#" className="hover:text-white"><Facebook className="w-5 h-5" /></a>
@@ -351,29 +351,10 @@ const MainPage = () => {
             <div>
               <h3 className="text-xl font-bold mb-4">Навигация</h3>
               <ul className="space-y-2 text-blue-100">
-                <li><a href="#" className="hover:text-white">О нас</a></li>
-                <li><a href="#" className="hover:text-white">Каталог недвижимости</a></li>
-                <li><a href="#" className="hover:text-white">Часто задаваемые вопросы</a></li>
-                <li><a href="#" className="hover:text-white">Статьи</a></li>
-                <li><a href="#" className="hover:text-white">Контакты</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="text-xl font-bold mb-4">Контакты</h3>
-              <ul className="space-y-2 text-blue-100">
-                <li className="flex items-center">
-                  <Phone className="w-4 h-4 mr-2" />
-                  <span>+34 XXX XXX XXX</span>
-                </li>
-                <li className="flex items-center">
-                  <Mail className="w-4 h-4 mr-2" />
-                  <span>info@spanish-estate.com</span>
-                </li>
-                <li className="flex items-center">
-                  <Home className="w-4 h-4 mr-2" />
-                  <span>Барселона, Испания</span>
-                </li>
+                <li><a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="hover:text-white">Каталог недвижимости</a></li>
+                <li><a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="hover:text-white">Часто задаваемые вопросы</a></li>
+                <li><a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="hover:text-white">Статьи</a></li>
+                <li><a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="hover:text-white">Отправить сообщение</a></li>
               </ul>
             </div>
             
@@ -396,7 +377,7 @@ const MainPage = () => {
           </div>
           
           <div className="pt-8 border-t border-blue-800 text-center text-blue-200">
-            <p>© 2025 Mirasol Estate. Все права защищены.</p>
+            <p>© 2024 Mirasol Estate. Все права защищены.</p>
             <div className="mt-2 flex justify-center space-x-4 text-sm">
               <a href="#" className="hover:text-white">Политика конфиденциальности</a>
               <a href="#" className="hover:text-white">Условия использования</a>

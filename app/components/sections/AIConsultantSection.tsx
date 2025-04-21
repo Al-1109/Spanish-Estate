@@ -15,7 +15,7 @@ export const AIConsultantSection = () => {
         <h2 className="text-3xl font-bold text-center mb-6 text-blue-900">Задайте вопрос нашему ИИ-консультанту</h2>
         <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
           Наш искусственный интеллект ответит на любые вопросы о недвижимости в Испании, 
-          процессе покупки, ВНЖ и многом другом
+          процессе покупки, ВНЖ и многом другом. Вы также можете отправить нам личное сообщение в этом чате.
         </p>
         
         <div className="w-full bg-white rounded-lg shadow-lg overflow-hidden" style={{ height: '500px' }}>
