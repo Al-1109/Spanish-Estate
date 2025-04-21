@@ -40,12 +40,19 @@ const MainPage = () => {
     setMobileMenuOpen(false);
   };
   
+  // Функция прокрутки к блоку ИИ-консультанта с заполнением поля ввода
   const scrollToAIConsultant = (propertyTitle: string, location: string) => {
-    setChatMessage(`Меня заинтересовал объект по адресу: ${location}. Расскажите подробнее о нем.`);
-    const element = document.getElementById('ai-consultant');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    // Устанавливаем сообщение с информацией об объекте
+    const message = `Меня заинтересовал объект по адресу: ${location}. Расскажите подробнее о нем.`;
+    setChatMessage(message);
+    
+    // Прокручиваем страницу к ИИ-консультанту
+    setTimeout(() => {
+      const element = document.getElementById('ai-consultant');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
   };
   
   const properties = [
@@ -237,11 +244,12 @@ const MainPage = () => {
           height: '400px',
           marginTop: '-5px',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          width: '100%'
         }}
       >
         <div 
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center w-full h-full"
           style={{ 
             backgroundImage: `url('/images/banner.jpg')`,
             filter: 'brightness(0.85)'

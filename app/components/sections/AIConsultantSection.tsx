@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import ChatInterface from '../../../components/ui/ChatInterface';
 
-export const AIConsultantSection = () => {
+interface AIConsultantSectionProps {
+  chatMessage?: string;
+}
+
+export const AIConsultantSection = ({ chatMessage }: AIConsultantSectionProps) => {
   const quickQuestions = [
     'Какую недвижимость я могу купить с бюджетом 300 000€?',
     'Какие документы нужны для покупки?',
@@ -19,7 +23,7 @@ export const AIConsultantSection = () => {
         </p>
         
         <div className="w-full bg-white rounded-lg shadow-lg overflow-hidden" style={{ height: '500px' }}>
-          <ChatInterface quickQuestions={quickQuestions} />
+          <ChatInterface quickQuestions={quickQuestions} initialMessage={chatMessage} />
         </div>
       </div>
     </section>

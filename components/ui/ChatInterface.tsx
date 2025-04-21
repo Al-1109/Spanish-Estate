@@ -8,13 +8,15 @@ const ANONYMOUS_USER_ID = '00000000-0000-0000-0000-000000000000';
 
 interface ChatInterfaceProps {
   quickQuestions: string[];
+  initialMessage?: string;
 }
 
-export default function ChatInterface({ quickQuestions }: ChatInterfaceProps) {
+export default function ChatInterface({ quickQuestions, initialMessage }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const previousInitialMessageRef = useRef<string | undefined>(undefined);
 
   // Загрузка истории чата при монтировании компонента
   useEffect(() => {
@@ -37,6 +39,23 @@ export default function ChatInterface({ quickQuestions }: ChatInterfaceProps) {
     
     loadChatHistory();
   }, []);
+
+  // Обработка initialMessage
+  useEffect(() => {
+    // Проверяем изменился ли initialMessage
+    if (initialMessage && initialMessage !== previousInitialMessageRef.current) {
+      // Обновляем поле ввода новым сообщением
+      setInputMessage(initialMessage);
+      // Сохраняем текущее сообщение для отслеживания изменений
+      previousInitialMessageRef.current = initialMessage;
+      
+      // Скроллим к секции чата
+      const element = document.getElementById('ai-consultant');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [initialMessage]);
   
   // Автоскролл при добавлении новых сообщений
   useEffect(() => {
@@ -49,7 +68,7 @@ export default function ChatInterface({ quickQuestions }: ChatInterfaceProps) {
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
     
-    const userMessage = inputMessage;
+    const text = inputMessage;
     setInputMessage('');
     setIsLoading(true);
     
@@ -57,7 +76,7 @@ export default function ChatInterface({ quickQuestions }: ChatInterfaceProps) {
     const newUserMessage: ChatMessage = {
       id: Date.now(), // Временный ID, который будет заменен после сохранения
       user_id: ANONYMOUS_USER_ID,
-      message: userMessage,
+      message: text,
       is_ai: false,
       created_at: new Date().toISOString(),
     };
@@ -65,10 +84,10 @@ export default function ChatInterface({ quickQuestions }: ChatInterfaceProps) {
     setMessages(prev => [...prev, newUserMessage]);
     
     // Сохраняем сообщение пользователя в БД
-    const savedUserMessage = await saveUserMessage(ANONYMOUS_USER_ID, userMessage);
+    const savedUserMessage = await saveUserMessage(ANONYMOUS_USER_ID, text);
     
     // Получаем ответ от ИИ
-    const aiResponseText = await getAIResponse(userMessage);
+    const aiResponseText = await getAIResponse(text);
     
     // Добавляем ответ ИИ в интерфейс
     const newAIMessage: ChatMessage = {
