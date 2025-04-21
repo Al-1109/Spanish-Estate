@@ -175,7 +175,7 @@ const MainPage = () => {
           <div className="hidden md:flex items-center space-x-6">
             <nav className="flex space-x-6">
               <a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="text-gray-700 hover:text-blue-900">Каталог</a>
-              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">ИИ-консультант</a>
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">FAQ</a>
               <a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="text-gray-700 hover:text-blue-900">Статьи</a>
               <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">Контакты</a>
             </nav>
@@ -206,7 +206,7 @@ const MainPage = () => {
           <div className="md:hidden bg-white py-4 px-4 shadow-lg">
             <nav className="flex flex-col space-y-3">
               <a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="text-gray-700 hover:text-blue-900">Каталог</a>
-              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">ИИ-консультант</a>
+              <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">FAQ</a>
               <a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="text-gray-700 hover:text-blue-900">Статьи</a>
               <a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="text-gray-700 hover:text-blue-900">Контакты</a>
             </nav>
@@ -503,7 +503,7 @@ const MainPage = () => {
             <div>
               <h3 className="text-xl font-bold mb-4">Навигация</h3>
               <ul className="space-y-2 text-blue-100">
-                <li><a href="/catalog" className="hover:text-white">Каталог недвижимости</a></li>
+                <li><a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="hover:text-white">Каталог недвижимости</a></li>
                 <li><a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="hover:text-white">Часто задаваемые вопросы</a></li>
                 <li><a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="hover:text-white">Статьи</a></li>
                 <li><a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="hover:text-white">Отправить сообщение</a></li>
