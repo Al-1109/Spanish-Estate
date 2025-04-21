@@ -413,32 +413,34 @@ const MainPage = () => {
                           <span>{property.location}</span>
                         </div>
                         
-                        <p className="text-gray-600 mb-4 line-clamp-2">
+                        <p className="text-gray-600 mb-6 line-clamp-2">
                           {property.description}
                         </p>
                         
-                        <div className="flex justify-between text-gray-700 mb-4">
-                          <div className="flex items-center whitespace-nowrap">
-                            <Home size={18} className="mr-2" />
-                            <span>{property.area} м²</span>
+                        <div className="mt-auto">
+                          <div className="flex justify-between text-gray-700 mb-6">
+                            <div className="flex items-center whitespace-nowrap">
+                              <Home size={18} className="mr-2" />
+                              <span>{property.area} м²</span>
+                            </div>
+                            <div className="flex items-center whitespace-nowrap">
+                              <BedDouble size={18} className="mr-2" />
+                              <span>{property.bedrooms} спальни</span>
+                            </div>
+                            <div className="flex items-center whitespace-nowrap">
+                              <Bath size={18} className="mr-2" />
+                              <span>{property.bathrooms} ванные</span>
+                            </div>
                           </div>
-                          <div className="flex items-center whitespace-nowrap">
-                            <BedDouble size={18} className="mr-2" />
-                            <span>{property.bedrooms} спальни</span>
+                          
+                          <div className="flex justify-end">
+                            <button 
+                              onClick={() => handleExpandProperty(property.id)}
+                              className="bg-blue-900 text-white px-6 py-3 rounded-md hover:bg-blue-800 transition flex items-center"
+                            >
+                              Подробнее <ArrowRight size={16} className="ml-2" />
+                            </button>
                           </div>
-                          <div className="flex items-center whitespace-nowrap">
-                            <Bath size={18} className="mr-2" />
-                            <span>{property.bathrooms} ванные</span>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-auto flex justify-end">
-                          <button 
-                            onClick={() => handleExpandProperty(property.id)}
-                            className="bg-blue-900 text-white px-6 py-3 rounded-md hover:bg-blue-800 transition flex items-center"
-                          >
-                            Подробнее <ArrowRight size={16} className="ml-2" />
-                          </button>
                         </div>
                       </div>
                     </>
