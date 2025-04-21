@@ -106,11 +106,11 @@ const MainPage = () => {
   ];
 
   return (
-    <div className="font-sans">
+    <div className="font-sans site-container" style={{ position: 'relative' }}>
       {/* Шапка */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md" style={{ marginBottom: 0, paddingBottom: 0 }}>
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="text-2xl font-bold text-blue-900">Spanish-Estate</div>
+          <div className="text-2xl font-bold text-blue-900">Mirasol Estate</div>
           
           <div className="hidden md:flex items-center space-x-6">
             <nav className="flex space-x-6">
@@ -169,29 +169,36 @@ const MainPage = () => {
         )}
       </header>
       
+      <div style={{ height: '60px' }}></div> {/* Высота шапки */}
+      
+      {/* Баннер с минимальным вертикальным отступом */}
+      <section 
+        style={{ 
+          height: '400px',
+          marginTop: '-5px', /* Отрицательное значение, чтобы устранить зазор */
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: `url('/images/banner.jpg')`,
+            filter: 'brightness(0.85)'
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black opacity-40" />
+      </section>
+      
       {/* Основной контент */}
       <main>
-        {/* Баннер */}
-        <section className="pt-16 relative h-screen">
-          <div 
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ 
-              backgroundImage: `url('/images/banner.jpg')`,
-              filter: 'brightness(0.85)'
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black opacity-40" />
-          <div className="container mx-auto px-4 h-full flex flex-col justify-center items-center relative z-10 text-center">
-          </div>
-        </section>
-        
         {/* Блок презентации */}
-        <section className="py-16 bg-white">
+        <section className="pt-0 pb-6 bg-white" style={{ marginTop: '-10px' }}>
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-8 text-blue-900">Элитная недвижимость в Испании</h2>
             <div className="max-w-3xl mx-auto text-center">
               <p className="text-lg text-gray-700 mb-6">
-                Spanish-Estate - это премиальный сервис по подбору и продаже элитной недвижимости в самых живописных уголках Испании. Мы специализируемся на эксклюзивных объектах, которые отвечают самым высоким стандартам качества и комфорта.
+                Mirasol Estate - это премиальный сервис по подбору и продаже элитной недвижимости в самых живописных уголках Испании. Мы специализируемся на эксклюзивных объектах, которые отвечают самым высоким стандартам качества и комфорта.
               </p>
               <p className="text-lg text-gray-700 mb-8">
                 Наша команда экспертов поможет вам найти идеальный дом мечты и обеспечит полное сопровождение сделки, включая юридическую поддержку и помощь в получении ВНЖ.
@@ -330,7 +337,7 @@ const MainPage = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">Spanish-Estate</h3>
+              <h3 className="text-xl font-bold mb-4">Mirasol Estate</h3>
               <p className="text-blue-100 mb-4">
                 Элитная недвижимость в Испании с полным сопровождением и поддержкой на всех этапах.
               </p>
@@ -389,7 +396,7 @@ const MainPage = () => {
           </div>
           
           <div className="pt-8 border-t border-blue-800 text-center text-blue-200">
-            <p>© 2025 Spanish-Estate. Все права защищены.</p>
+            <p>© 2025 Mirasol Estate. Все права защищены.</p>
             <div className="mt-2 flex justify-center space-x-4 text-sm">
               <a href="#" className="hover:text-white">Политика конфиденциальности</a>
               <a href="#" className="hover:text-white">Условия использования</a>
