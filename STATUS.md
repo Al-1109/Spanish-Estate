@@ -403,3 +403,196 @@ module.exports = {
 4. ⚠️ **В РАБОТЕ:** Интеграция с API для ИИ-консультанта
    - Текущий обход: Подготовлен интерфейс с имитацией диалога
    - Запланировано: Подключение к Supabase для хранения сообщений 
+
+# Internationalization (i18n) Implementation
+
+## Overview
+This document outlines the approach used to implement multilingual support in the Spain Estates Next.js application using the `next-intl` library (v4.0.2).
+
+## Implementation Algorithm
+
+### 1. Install Dependencies
+```bash
+npm install next-intl@4.0.2
+```
+
+### 2. Configure Middleware
+Create or update the `middleware.ts` file in the root directory:
+```typescript
+import createMiddleware from 'next-intl/middleware';
+
+export default createMiddleware({
+  // Define supported locales
+  locales: ['ru', 'en', 'es'],
+  // Set default locale
+  defaultLocale: 'ru',
+});
+
+export const config = {
+  // Match all routes except for static files and API routes
+  matcher: ['/((?!api|_next|.*\\..*).*)']
+};
+```
+
+### 3. Create Localized Routing
+Update the app directory structure to support locale-based routing:
+- Move content from `app/page.tsx` to `app/[locale]/page.tsx`
+- Move content from `app/layout.tsx` to `app/[locale]/layout.tsx`
+- Create `app/layout.tsx` as a root layout
+
+### 4. Create Translation Files
+- Create a `messages` directory to store translation files
+- Add locale-specific JSON files (e.g., `en.json`, `ru.json`, `es.json`)
+
+Example structure:
+```
+messages/
+  en.json
+  ru.json
+  es.json
+```
+
+### 5. Update Root Layout
+Create/update `app/layout.tsx` to serve as a simple root layout:
+```typescript
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+### 6. Create Localized Layout
+Create `app/[locale]/layout.tsx` to use `NextIntlClientProvider`:
+```typescript
+import { NextIntlClientProvider } from 'next-intl';
+
+export default async function LocaleLayout({
+  children,
+  params: { locale },
+}: {
+  children: React.ReactNode;
+  params: { locale: string };
+}) {
+  let messages;
+  try {
+    messages = (await import(`../../messages/${locale}.json`)).default;
+  } catch (error) {
+    // Fallback if locale messages not found
+    messages = (await import(`../../messages/ru.json`)).default;
+  }
+
+  return (
+    <html lang={locale}>
+      <body>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### 7. Create Main Page
+Create `app/[locale]/page.tsx` as your main page with translations:
+```typescript
+import { useTranslations } from 'next-intl';
+
+export default function Home() {
+  const t = useTranslations();
+  
+  return (
+    <main>
+      <h1>{t('home.title')}</h1>
+      {/* Rest of your content */}
+    </main>
+  );
+}
+```
+
+### 8. Update Components
+For each component that requires translations:
+1. Add the `'use client'` directive at the top
+2. Import `useTranslations` from `next-intl`
+3. Get the translation function using `const t = useTranslations()`
+4. Replace hardcoded text with translation keys:
+   - `<h1>Hello</h1>` becomes `<h1>{t('greeting')}</h1>`
+
+### 9. Add Language Switcher
+Create a language switcher component:
+```typescript
+'use client';
+import { usePathname, useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
+
+export default function LanguageSwitcher() {
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleLocaleChange = (newLocale: string) => {
+    const newPath = pathname.replace(`/${locale}`, `/${newLocale}`);
+    router.push(newPath);
+  };
+
+  return (
+    <div>
+      <button onClick={() => handleLocaleChange('ru')} className={locale === 'ru' ? 'active' : ''}>RU</button>
+      <button onClick={() => handleLocaleChange('en')} className={locale === 'en' ? 'active' : ''}>EN</button>
+      <button onClick={() => handleLocaleChange('es')} className={locale === 'es' ? 'active' : ''}>ES</button>
+    </div>
+  );
+}
+```
+
+### 10. Create Translation Files
+Example `ru.json`:
+```json
+{
+  "home": {
+    "title": "Добро пожаловать",
+    "description": "Найдите недвижимость вашей мечты в Испании"
+  },
+  "navigation": {
+    "home": "Главная",
+    "properties": "Недвижимость",
+    "about": "О нас",
+    "contact": "Контакты"
+  }
+}
+```
+
+## Implementation Status
+
+### Completed
+- ✅ Installed next-intl v4.0.2
+- ✅ Configured middleware.ts for locale routing
+- ✅ Created basic directory structure for localized routes
+- ✅ Added translation files (ru.json, en.json, es.json)
+- ✅ Modified root layout.tsx
+- ✅ Added localized layout.tsx with NextIntlClientProvider
+- ✅ Created basic components (Header, Footer)
+- ✅ Added LanguageSwitcher component
+- ✅ Created placeholder page.tsx with translated content
+
+### Next Steps
+- [ ] Migrate all section components to the localized structure
+- [ ] Update each section component to use translations
+- [ ] Add more comprehensive translations for each component
+- [ ] Add additional sections from the main page
+- [ ] Test and verify all functionality
+- [ ] Deploy and test in production
+
+## Verification
+After implementation, verify:
+1. The site loads correctly with the default locale
+2. Navigating to `/en` or `/es` shows the correct translated content
+3. The language switcher works correctly
+4. All text is properly translated 
