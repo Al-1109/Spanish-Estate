@@ -626,6 +626,94 @@ export default function LanguageSwitcher() {
 }
 ```
 
+#### 9.1 Alternative Language Switcher Implementations
+
+##### Simple Button-Based Switcher
+For a simpler UI with buttons instead of a dropdown:
+```typescript
+'use client';
+import { useLocale } from 'next-intl';
+import { usePathname, Link } from '@/src/i18n/navigation';
+
+export default function LanguageSwitcher() {
+  const locale = useLocale();
+  const pathname = usePathname();
+
+  return (
+    <div className="flex space-x-2">
+      <Link
+        href={pathname}
+        locale="ru"
+        className={`text-sm px-2 py-1 rounded ${locale === 'ru' ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+      >
+        RU
+      </Link>
+      <Link
+        href={pathname}
+        locale="en"
+        className={`text-sm px-2 py-1 rounded ${locale === 'en' ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+      >
+        EN
+      </Link>
+      <Link
+        href={pathname}
+        locale="es"
+        className={`text-sm px-2 py-1 rounded ${locale === 'es' ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+      >
+        ES
+      </Link>
+    </div>
+  );
+}
+```
+
+##### Dropdown with Hover Effect
+For a more advanced UI with dropdown on hover:
+```typescript
+'use client';
+import { useLocale } from 'next-intl';
+import { usePathname, Link } from '@/src/i18n/navigation';
+import { Globe } from 'lucide-react';
+
+// Названия языков для отображения
+const localeNames: Record<string, string> = {
+  ru: 'Русский',
+  en: 'English',
+  es: 'Español'
+};
+
+export default function LocaleSwitcher() {
+  const pathname = usePathname();
+  const currentLocale = useLocale();
+  
+  return (
+    <div className="relative group">
+      <button className="flex items-center gap-1 px-3 py-1 text-sm font-medium rounded-md border">
+        <Globe className="w-4 h-4" />
+        <span>{currentLocale.toUpperCase()}</span>
+      </button>
+      
+      <div className="absolute right-0 mt-1 bg-white shadow-lg rounded p-1 hidden group-hover:block hover:block z-50">
+        {routing.locales.map((locale) => {
+          return (
+            <Link 
+              key={locale}
+              href={pathname}
+              locale={locale}
+              className={`block px-4 py-1 text-sm hover:bg-gray-100 whitespace-nowrap rounded ${
+                locale === currentLocale ? 'font-bold' : ''
+              }`}
+            >
+              {localeNames[locale]}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+```
+
 ## Implementation Status
 
 ### Completed
@@ -638,6 +726,7 @@ export default function LanguageSwitcher() {
 - ✅ Added localized layout.tsx with NextIntlClientProvider and static rendering support
 - ✅ Created basic components (Header, Footer)
 - ✅ Added LanguageSwitcher component
+- ✅ Implemented alternative language switcher components (button-based and dropdown with hover)
 - ✅ Created placeholder page.tsx with translated content
 
 ### Next Steps
