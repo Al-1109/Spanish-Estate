@@ -1,0 +1,68 @@
+{
+  "site": {
+    "title": "Mirasol Estate - Inmobiliaria en España de Propietarios",
+    "description": "Venta de inmuebles en España directamente de propietarios con apoyo completo"
+  },
+  "navigation": {
+    "catalog": "Catálogo",
+    "faq": "FAQ",
+    "articles": "Artículos",
+    "contacts": "Contactos",
+    "consultWithAI": "Obtener Consulta"
+  },
+  "hero": {
+    "title": "Inmuebles en España de Propietarios",
+    "subtitle": "Con documentos verificados y sin comisiones",
+    "buttonText": "Iniciar Búsqueda",
+    "stats": {
+      "objects": "propiedades en catálogo",
+      "regions": "regiones de España",
+      "experience": "años de experiencia"
+    }
+  },
+  "properties": {
+    "title": "Catálogo de Propiedades",
+    "buttonText": "Filtrar por Parámetros",
+    "showMore": "Mostrar Más",
+    "details": "Más Detalles",
+    "contact": "Hacer una Pregunta",
+    "area": "área",
+    "bedrooms": "dormitorios",
+    "bathrooms": "baños",
+    "features": "Características de la Propiedad",
+    "noResults": "No se encontraron propiedades"
+  },
+  "features": {
+    "title": "Por Qué Elegirnos",
+    "AIConsultant": "Consultor de IA",
+    "AIDescription": "Respuestas instantáneas a todas sus preguntas sobre la compra de propiedades en España a cualquier hora del día",
+    "verifiedProperties": "Propiedades Verificadas",
+    "verifiedDescription": "Paquete completo de documentos para bienes raíces y sin gravámenes. Todos los certificados necesarios",
+    "economicBenefit": "Beneficio Económico",
+    "economicDescription": "Vendemos nuestros apartamentos sin comisiones de agencia. Por eso nuestros precios están por debajo del mercado",
+    "fullSupport": "Apoyo Completo",
+    "fullSupportDescription": "Apoyo legal en todas las etapas de la transacción, asistencia para obtener un número fiscal en España, apertura de cuenta, hipoteca"
+  },
+  "articles": {
+    "title": "Artículos Útiles",
+    "readMore": "Leer Más"
+  },
+  "aiConsultant": {
+    "title": "Haga una Pregunta al Consultor de IA",
+    "subtitle": "Obtenga una respuesta instantánea a cualquier pregunta sobre la compra de propiedades en España",
+    "placeholder": "Ingrese su pregunta...",
+    "send": "Enviar",
+    "quickQuestions": "Preguntas Rápidas"
+  },
+  "footer": {
+    "description": "Agencia inmobiliaria en España. Ayudamos a clientes de habla rusa a encontrar, elegir y comprar bienes raíces en toda España.",
+    "navigation": "Navegación",
+    "contacts": "Contactos",
+    "subscribe": "Suscribirse a Noticias",
+    "subscribeButton": "Suscribirse",
+    "subscribeSuccess": "¡Gracias por suscribirse!",
+    "copyright": "© 2023 Mirasol Estate. Todos los derechos reservados.",
+    "privacyPolicy": "Política de Privacidad",
+    "termsOfUse": "Términos de Uso"
+  }
+} 

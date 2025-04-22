@@ -1,0 +1,68 @@
+{
+  "site": {
+    "title": "Mirasol Estate - Real Estate in Spain from Owners",
+    "description": "Sale of real estate in Spain directly from owners with full support"
+  },
+  "navigation": {
+    "catalog": "Catalog",
+    "faq": "FAQ",
+    "articles": "Articles",
+    "contacts": "Contacts",
+    "consultWithAI": "Get Consultation"
+  },
+  "hero": {
+    "title": "Real Estate in Spain from Owners",
+    "subtitle": "With verified documents and no commissions",
+    "buttonText": "Start Search",
+    "stats": {
+      "objects": "properties in catalog",
+      "regions": "regions of Spain",
+      "experience": "years of experience"
+    }
+  },
+  "properties": {
+    "title": "Property Catalog",
+    "buttonText": "Filter by Parameters",
+    "showMore": "Show More",
+    "details": "More Details",
+    "contact": "Ask a Question",
+    "area": "area",
+    "bedrooms": "bedrooms",
+    "bathrooms": "bathrooms",
+    "features": "Property Features",
+    "noResults": "No properties found"
+  },
+  "features": {
+    "title": "Why Choose Us",
+    "AIConsultant": "AI Consultant",
+    "AIDescription": "Instant answers to all your questions about buying property in Spain at any time of day",
+    "verifiedProperties": "Verified Properties",
+    "verifiedDescription": "Complete package of documents for real estate and no encumbrances. All necessary certificates",
+    "economicBenefit": "Economic Benefit",
+    "economicDescription": "We sell our apartments without agency commissions. That's why our prices are below market",
+    "fullSupport": "Full Support",
+    "fullSupportDescription": "Legal support at all stages of the transaction, assistance in obtaining a tax number in Spain, opening an account, mortgage"
+  },
+  "articles": {
+    "title": "Useful Articles",
+    "readMore": "Read More"
+  },
+  "aiConsultant": {
+    "title": "Ask a Question to AI Consultant",
+    "subtitle": "Get an instant answer to any question about buying property in Spain",
+    "placeholder": "Enter your question...",
+    "send": "Send",
+    "quickQuestions": "Quick Questions"
+  },
+  "footer": {
+    "description": "Real estate agency in Spain. We help Russian-speaking clients find, choose and purchase real estate throughout Spain.",
+    "navigation": "Navigation",
+    "contacts": "Contacts",
+    "subscribe": "Subscribe to News",
+    "subscribeButton": "Subscribe",
+    "subscribeSuccess": "Thank you for subscribing!",
+    "copyright": "© 2023 Mirasol Estate. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use"
+  }
+} 
