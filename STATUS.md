@@ -416,17 +416,68 @@ This document outlines the approach used to implement multilingual support in th
 npm install next-intl@4.0.2
 ```
 
-### 2. Configure Middleware
-Create or update the `middleware.ts` file in the root directory:
-```typescript
-import createMiddleware from 'next-intl/middleware';
+### 2. Create i18n Configuration Structure
+Create a dedicated directory structure for better organization:
+```
+src/
+  i18n/
+    routing.ts      # Routing configuration
+    navigation.ts   # Navigation functions
+    request.ts      # Request handling
+```
 
-export default createMiddleware({
+#### 2.1 Configure Routing (src/i18n/routing.ts)
+```typescript
+import {defineRouting} from 'next-intl/routing';
+
+export const routing = defineRouting({
   // Define supported locales
   locales: ['ru', 'en', 'es'],
   // Set default locale
   defaultLocale: 'ru',
+  // Always show locale prefix in URL
+  localePrefix: 'always'
 });
+```
+
+#### 2.2 Configure Navigation (src/i18n/navigation.ts)
+```typescript
+import {createNavigation} from 'next-intl/navigation';
+import {routing} from './routing';
+
+// Create lightweight wrappers around Next.js navigation APIs
+export const {Link, redirect, usePathname, useRouter, getPathname} =
+  createNavigation(routing);
+```
+
+#### 2.3 Configure Request Handling (src/i18n/request.ts)
+```typescript
+import {getRequestConfig} from 'next-intl/server';
+import {hasLocale} from 'next-intl';
+import {routing} from './routing';
+
+export default getRequestConfig(async ({requestLocale}) => {
+  // Typically corresponds to the [locale] segment
+  const requested = await requestLocale;
+  const locale = hasLocale(routing.locales, requested)
+    ? requested
+    : routing.defaultLocale;
+  
+  return {
+    locale,
+    messages: (await import(`../../messages/${locale}.json`)).default
+  };
+});
+```
+
+### 3. Configure Middleware
+Create or update the `middleware.ts` file in the root directory:
+```typescript
+import createMiddleware from 'next-intl/middleware';
+import {routing} from './src/i18n/routing';
+
+// Middleware for handling i18n routing
+export default createMiddleware(routing);
 
 export const config = {
   // Match all routes except for static files and API routes
@@ -434,13 +485,20 @@ export const config = {
 };
 ```
 
-### 3. Create Localized Routing
-Update the app directory structure to support locale-based routing:
-- Move content from `app/page.tsx` to `app/[locale]/page.tsx`
-- Move content from `app/layout.tsx` to `app/[locale]/layout.tsx`
-- Create `app/layout.tsx` as a root layout
+### 4. Configure Next.js with Plugin
+Update `next.config.js` to use the next-intl plugin:
+```javascript
+const createNextIntlPlugin = require('next-intl/plugin');
 
-### 4. Create Translation Files
+const withNextIntl = createNextIntlPlugin();
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {};
+
+module.exports = withNextIntl(nextConfig);
+```
+
+### 5. Create Translation Files
 - Create a `messages` directory to store translation files
 - Add locale-specific JSON files (e.g., `en.json`, `ru.json`, `es.json`)
 
@@ -452,7 +510,7 @@ messages/
   es.json
 ```
 
-### 5. Update Root Layout
+### 6. Update Root Layout
 Create/update `app/layout.tsx` to serve as a simple root layout:
 ```typescript
 export default function RootLayout({
@@ -468,25 +526,37 @@ export default function RootLayout({
 }
 ```
 
-### 6. Create Localized Layout
-Create `app/[locale]/layout.tsx` to use `NextIntlClientProvider`:
+### 7. Create Localized Layout
+Create `app/[locale]/layout.tsx` to use `NextIntlClientProvider` with static rendering support:
 ```typescript
-import { NextIntlClientProvider } from 'next-intl';
+import { NextIntlClientProvider, hasLocale } from 'next-intl';
+import { setRequestLocale, getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { routing } from '@/src/i18n/routing';
+
+// Generate static params for all supported locales
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 
 export default async function LocaleLayout({
   children,
-  params: { locale },
+  params
 }: {
   children: React.ReactNode;
   params: { locale: string };
 }) {
-  let messages;
-  try {
-    messages = (await import(`../../messages/${locale}.json`)).default;
-  } catch (error) {
-    // Fallback if locale messages not found
-    messages = (await import(`../../messages/ru.json`)).default;
+  // Validate the incoming locale
+  const { locale } = params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
   }
+
+  // Enable static rendering
+  setRequestLocale(locale);
+
+  // Load messages for current locale
+  const messages = await getMessages();
 
   return (
     <html lang={locale}>
@@ -500,36 +570,36 @@ export default async function LocaleLayout({
 }
 ```
 
-### 7. Create Main Page
-Create `app/[locale]/page.tsx` as your main page with translations:
-```typescript
-import { useTranslations } from 'next-intl';
-
-export default function Home() {
-  const t = useTranslations();
-  
-  return (
-    <main>
-      <h1>{t('home.title')}</h1>
-      {/* Rest of your content */}
-    </main>
-  );
-}
-```
-
-### 8. Update Components
+### 8. Create Components with Translation Support
 For each component that requires translations:
 1. Add the `'use client'` directive at the top
 2. Import `useTranslations` from `next-intl`
 3. Get the translation function using `const t = useTranslations()`
-4. Replace hardcoded text with translation keys:
-   - `<h1>Hello</h1>` becomes `<h1>{t('greeting')}</h1>`
+4. Replace hardcoded text with translation keys
 
-### 9. Add Language Switcher
-Create a language switcher component:
+Example component:
 ```typescript
 'use client';
-import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+
+export default function MyComponent() {
+  const t = useTranslations('ComponentNamespace');
+  
+  return (
+    <div>
+      <h1>{t('title')}</h1>
+      <p>{t('description')}</p>
+    </div>
+  );
+}
+```
+
+### 9. Create Language Switcher
+Create a language switcher component that uses the navigation helpers:
+```typescript
+'use client';
+import { usePathname } from '@/src/i18n/navigation';
+import { useRouter } from '@/src/i18n/navigation';
 import { useLocale } from 'next-intl';
 
 export default function LanguageSwitcher() {
@@ -538,34 +608,21 @@ export default function LanguageSwitcher() {
   const pathname = usePathname();
 
   const handleLocaleChange = (newLocale: string) => {
-    const newPath = pathname.replace(`/${locale}`, `/${newLocale}`);
-    router.push(newPath);
+    router.replace(pathname, { locale: newLocale });
   };
 
   return (
     <div>
-      <button onClick={() => handleLocaleChange('ru')} className={locale === 'ru' ? 'active' : ''}>RU</button>
-      <button onClick={() => handleLocaleChange('en')} className={locale === 'en' ? 'active' : ''}>EN</button>
-      <button onClick={() => handleLocaleChange('es')} className={locale === 'es' ? 'active' : ''}>ES</button>
+      <select 
+        value={locale} 
+        onChange={(e) => handleLocaleChange(e.target.value)}
+      >
+        <option value="ru">Русский</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
+      </select>
     </div>
   );
-}
-```
-
-### 10. Create Translation Files
-Example `ru.json`:
-```json
-{
-  "home": {
-    "title": "Добро пожаловать",
-    "description": "Найдите недвижимость вашей мечты в Испании"
-  },
-  "navigation": {
-    "home": "Главная",
-    "properties": "Недвижимость",
-    "about": "О нас",
-    "contact": "Контакты"
-  }
 }
 ```
 
@@ -573,11 +630,12 @@ Example `ru.json`:
 
 ### Completed
 - ✅ Installed next-intl v4.0.2
+- ✅ Created structured i18n configuration (routing, navigation, request)
 - ✅ Configured middleware.ts for locale routing
 - ✅ Created basic directory structure for localized routes
 - ✅ Added translation files (ru.json, en.json, es.json)
 - ✅ Modified root layout.tsx
-- ✅ Added localized layout.tsx with NextIntlClientProvider
+- ✅ Added localized layout.tsx with NextIntlClientProvider and static rendering support
 - ✅ Created basic components (Header, Footer)
 - ✅ Added LanguageSwitcher component
 - ✅ Created placeholder page.tsx with translated content
@@ -595,4 +653,5 @@ After implementation, verify:
 1. The site loads correctly with the default locale
 2. Navigating to `/en` or `/es` shows the correct translated content
 3. The language switcher works correctly
-4. All text is properly translated 
+4. All text is properly translated
+5. Static generation works correctly (if needed) 
