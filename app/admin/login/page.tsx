@@ -1,37 +1,78 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { useSupabaseAuth } from '@/lib/hooks/useSupabaseAuth';
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { signIn, user } = useSupabaseAuth();
+
+  // Проверяем, есть ли параметр ошибки в URL
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'insufficient_permissions') {
+      setError('У вас недостаточно прав для доступа к админ-панели.');
+    }
+
+    // Отображаем текущего пользователя для отладки
+    if (user) {
+      setDebugInfo(`Текущий пользователь: ${user.email} 
+        Роль: ${user.app_metadata?.role || 'не установлена'}
+        ID: ${user.id}`);
+    }
+  }, [searchParams, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setDebugInfo(null);
 
-    // Примитивная проверка - в реальном приложении здесь должна быть 
-    // интеграция с бэкендом и настоящей авторизацией
     try {
-      // Имитация задержки сетевого запроса
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log(`Попытка входа для: ${email}`);
       
-      // Простая демо-проверка - в продакшене использовать настоящую аутентификацию!
-      if (username === 'admin' && password === 'password') {
-        // Сохраняем статус авторизации (в реальном приложении должен быть токен)
+      // Проверка на тестовый режим (временно пока не настроена БД)
+      if (email === 'admin' && password === 'password') {
+        console.log('Вход с тестовыми учетными данными');
+        // Сохраняем статус авторизации (для обратной совместимости)
         localStorage.setItem('adminLoggedIn', 'true');
         router.push('/admin/dashboard');
-      } else {
-        setError('Неверное имя пользователя или пароль');
+        return;
       }
+      
+      // Реальная авторизация через Supabase
+      console.log('Выполняем вход через Supabase...');
+      const { data, error: signInError } = await signIn(email, password);
+      
+      if (signInError) {
+        console.error('Ошибка входа:', signInError);
+        setError(signInError instanceof Error ? signInError.message : 'Ошибка при входе');
+        setDebugInfo(`Ошибка: ${JSON.stringify(signInError)}`);
+        return;
+      }
+      
+      console.log('Вход успешен, перенаправление...');
+      setDebugInfo(`Успешный вход: ${JSON.stringify(data)}`);
+      
+      // Сохраняем статус авторизации (для обратной совместимости)
+      localStorage.setItem('adminLoggedIn', 'true');
+      
+      // Перенаправляем на страницу, с которой пришел пользователь, или на дашборд
+      const fromPath = searchParams.get('from');
+      router.push(fromPath || '/admin/dashboard');
     } catch (err) {
+      console.error('Непредвиденная ошибка:', err);
       setError('Произошла ошибка при входе. Пожалуйста, попробуйте еще раз.');
+      setDebugInfo(`Непредвиденная ошибка: ${JSON.stringify(err)}`);
     } finally {
       setLoading(false);
     }
@@ -58,17 +99,17 @@ export default function AdminLogin() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="username" className="sr-only">Имя пользователя</label>
+              <label htmlFor="email" className="sr-only">Email</label>
               <input
-                id="username"
-                name="username"
+                id="email"
+                name="email"
                 type="text"
-                autoComplete="username"
+                autoComplete="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Имя пользователя"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
@@ -128,7 +169,17 @@ export default function AdminLogin() {
           <p>Для тестового доступа:</p>
           <p>Логин: admin</p>
           <p>Пароль: password</p>
+          <p className="mt-1 pt-1 border-t border-gray-100">
+            Или используйте учетные данные Supabase
+          </p>
         </div>
+        
+        {debugInfo && (
+          <div className="mt-4 p-3 bg-gray-100 rounded-md text-xs text-gray-600 whitespace-pre-wrap overflow-auto max-h-40">
+            <p className="font-medium mb-1">Отладочная информация:</p>
+            {debugInfo}
+          </div>
+        )}
       </div>
     </div>
   );

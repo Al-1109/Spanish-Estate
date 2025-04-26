@@ -1,0 +1,80 @@
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export async function middleware(req: NextRequest) {
+  // Добавим отладочные логи
+  console.log(`[Middleware] Запрос к: ${req.nextUrl.pathname}`);
+  
+  // Создаем клиент Supabase для middleware
+  const res = NextResponse.next();
+  
+  // Обновленное создание клиента с использованием новой библиотеки
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    {
+      cookies: {
+        get: (name) => req.cookies.get(name)?.value,
+        set: (name, value, options) => {
+          res.cookies.set({ name, value, ...options });
+        },
+        remove: (name, options) => {
+          res.cookies.delete({ name, ...options });
+        },
+      },
+    }
+  );
+
+  // Проверяем, является ли запрашиваемый маршрут админ-маршрутом
+  const isAdminRoute = req.nextUrl.pathname.startsWith('/admin') && 
+                      !req.nextUrl.pathname.startsWith('/admin/login');
+
+  if (isAdminRoute) {
+    console.log(`[Middleware] Проверка доступа к админ-маршруту: ${req.nextUrl.pathname}`);
+    
+    // Получаем сессию пользователя
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      console.error(`[Middleware] Ошибка получения сессии:`, sessionError);
+    }
+
+    // Проверяем наличие сессии и прав доступа
+    if (!session) {
+      console.log(`[Middleware] Сессия не найдена, редирект на страницу входа`);
+      // Перенаправляем на страницу входа
+      const redirectUrl = new URL('/admin/login', req.url);
+      // Сохраняем оригинальный URL для возврата после аутентификации
+      redirectUrl.searchParams.set('from', req.nextUrl.pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Дополнительная проверка прав администратора - может быть расширена
+    const user = session.user;
+    console.log(`[Middleware] Пользователь найден: ${user.email}, метаданные:`, user.app_metadata);
+    
+    const isAdmin = user?.app_metadata?.role === 'admin' || 
+                    user?.email?.endsWith('@spanish-estate.com') || 
+                    false;
+    
+    console.log(`[Middleware] Является администратором: ${isAdmin}`);
+
+    if (!isAdmin) {
+      console.log(`[Middleware] Недостаточно прав доступа, редирект на страницу входа`);
+      // Если пользователь не админ, перенаправляем на страницу входа
+      const redirectUrl = new URL('/admin/login', req.url);
+      redirectUrl.searchParams.set('error', 'insufficient_permissions');
+      return NextResponse.redirect(redirectUrl);
+    }
+    
+    console.log(`[Middleware] Доступ разрешен: ${req.nextUrl.pathname}`);
+  }
+
+  return res;
+}
+
+// Указываем маршруты, для которых должен быть запущен middleware
+export const config = {
+  matcher: ['/admin/:path*'],
+}; 

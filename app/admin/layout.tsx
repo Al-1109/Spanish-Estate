@@ -2,35 +2,38 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useSupabaseAuth } from '@/lib/hooks/useSupabaseAuth';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const { user, loading, isAdmin, signOut } = useSupabaseAuth();
   const router = useRouter();
   const pathname = usePathname();
 
+  // Защита маршрутов
   useEffect(() => {
-    // Проверка авторизации - будет заменена на более надежный механизм
-    const checkAuth = () => {
-      // Простая имитация проверки авторизации на клиенте
-      const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
-      
-      setIsAuthorized(isLoggedIn);
-      
-      // Не редиректим со страницы логина
-      if (!isLoggedIn && pathname !== '/admin/login') {
+    // Не редиректим со страницы логина
+    if (!loading && !user && pathname !== '/admin/login') {
+      router.push('/admin/login');
+    }
+  }, [loading, user, pathname, router]);
+
+  // Проверка прав администратора
+  useEffect(() => {
+    // Если пользователь авторизован, но не админ, выходим и перенаправляем на страницу логина
+    if (!loading && user && !isAdmin && pathname !== '/admin/login') {
+      // Выход и перенаправление
+      signOut().then(() => {
         router.push('/admin/login');
-      }
-    };
-    
-    checkAuth();
-  }, [pathname, router]);
+      });
+    }
+  }, [loading, user, isAdmin, pathname, router, signOut]);
 
   // Пока проверяем авторизацию, показываем загрузку
-  if (isAuthorized === null) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -45,8 +48,8 @@ export default function AdminLayout({
     return children;
   }
 
-  // Если не авторизован и не на странице логина, не рендерим контент
-  if (!isAuthorized) {
+  // Если не авторизован и не на странице логина, не рендерим контент (будет редирект)
+  if (!user) {
     return null;
   }
 
@@ -57,6 +60,9 @@ export default function AdminLayout({
       <div className="w-64 bg-white shadow-md pt-5 pb-8 px-4 flex flex-col fixed h-full">
         <div className="mb-8">
           <h1 className="text-xl font-bold">SpainEstates Admin</h1>
+          {user && (
+            <p className="text-sm text-gray-500 mt-1">{user.email}</p>
+          )}
         </div>
         
         <nav className="flex-1">
@@ -113,8 +119,9 @@ export default function AdminLayout({
           <button 
             className="flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-md w-full"
             onClick={() => {
-              localStorage.removeItem('adminLoggedIn');
-              router.push('/admin/login');
+              signOut().then(() => {
+                router.push('/admin/login');
+              });
             }}
           >
             <span className="mr-3">🚪</span>

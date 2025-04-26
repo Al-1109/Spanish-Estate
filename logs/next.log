@@ -4,18 +4,26 @@
 
 - info Loaded env from /Users/albertkashin/Projects/SpainEstates/.env.local
 - [32mready[39m started server on [::]:3000, url: http://localhost:3000
-- [35mevent[39m compiled client and server successfully in 541 ms (20 modules)
+- [35mevent[39m compiled client and server successfully in 427 ms (20 modules)
 - [36minfo[39m Loaded env from /Users/albertkashin/Projects/SpainEstates/.env.local
 - [36minfo[39m Loaded env from /Users/albertkashin/Projects/SpainEstates/.env.local
-- [36mwait[39m compiling /_error (client and server)...
-- [35mevent[39m compiled client and server successfully in 1280 ms (169 modules)
-- [36mwait[39m compiling /page (client and server)...
-- [35mevent[39m compiled client and server successfully in 4.1s (737 modules)
-- [36mwait[39m compiling...
-- [35mevent[39m compiled successfully in 1107 ms (444 modules)
 - [36mwait[39m compiling /middleware (client and server)...
-- [35mevent[39m compiled successfully in 218 ms (53 modules)
+- [35mevent[39m compiled successfully in 564 ms (53 modules)
+[Middleware-Bypass] Запрос к: /admin/login
 - [36mwait[39m compiling /admin/login/page (client and server)...
-- [35mevent[39m compiled client and server successfully in 675 ms (754 modules)
+- [35mevent[39m compiled client and server successfully in 4.6s (564 modules)
+- [36mwait[39m compiling...
+- [35mevent[39m compiled successfully in 813 ms (321 modules)
+- [36mwait[39m compiling /_error (client and server)...
+[Middleware-Bypass] Запрос к: /admin/login
+- [35mevent[39m compiled client and server successfully in 1067 ms (674 modules)
+[Middleware-Bypass] Запрос к: /admin/login
+- [36mwait[39m compiling /page (client and server)...
+- [35mevent[39m compiled client and server successfully in 627 ms (756 modules)
+[Middleware-Bypass] Запрос к: /admin/login
+[Middleware-Bypass] Запрос к: /admin/dashboard
 - [36mwait[39m compiling /admin/dashboard/page (client and server)...
-- [35mevent[39m compiled client and server successfully in 320 ms (770 modules)
+[Middleware-Bypass] Запрос к: /admin/login
+- [35mevent[39m compiled client and server successfully in 789 ms (772 modules)
+[Middleware-Bypass] Запрос к: /admin/dashboard
+[Middleware-Bypass] Запрос к: /admin/login
