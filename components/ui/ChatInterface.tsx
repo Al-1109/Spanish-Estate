@@ -18,32 +18,29 @@ export default function ChatInterface({ quickQuestions, initialMessage }: ChatIn
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const previousInitialMessageRef = useRef<string | undefined>(undefined);
 
+  // Функция для сброса чата и установки начального приветственного сообщения
+  const resetChat = () => {
+    setMessages([{
+      id: 0,
+      created_at: new Date().toISOString(),
+      user_id: ANONYMOUS_USER_ID,
+      message: 'Здравствуйте! Я ИИ-консультант Mirasol Estate. Чем я могу вам помочь?',
+      is_ai: true,
+    }]);
+  };
+
   // Загрузка истории чата при монтировании компонента
   useEffect(() => {
-    async function loadChatHistory() {
-      const history = await getChatHistory(ANONYMOUS_USER_ID);
-      
-      // Если истории нет, добавляем приветственное сообщение
-      if (history.length === 0) {
-        setMessages([{
-          id: 0,
-          created_at: new Date().toISOString(),
-          user_id: ANONYMOUS_USER_ID,
-          message: 'Здравствуйте! Я ИИ-консультант Mirasol Estate. Чем я могу вам помочь?',
-          is_ai: true,
-        }]);
-      } else {
-        setMessages(history);
-      }
-    }
-    
-    loadChatHistory();
+    resetChat();
   }, []);
 
   // Обработка initialMessage
   useEffect(() => {
     // Проверяем изменился ли initialMessage
     if (initialMessage && initialMessage !== previousInitialMessageRef.current) {
+      // При изменении initialMessage сбрасываем историю чата
+      resetChat();
+
       // Обновляем поле ввода новым сообщением
       setInputMessage(initialMessage);
       // Сохраняем текущее сообщение для отслеживания изменений
@@ -54,6 +51,12 @@ export default function ChatInterface({ quickQuestions, initialMessage }: ChatIn
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+    } else if (initialMessage === '' && previousInitialMessageRef.current !== '') {
+      // Если initialMessage сбросили на пустую строку, тоже сбрасываем чат
+      resetChat();
+      // Очищаем поле ввода
+      setInputMessage('');
+      previousInitialMessageRef.current = '';
     }
   }, [initialMessage]);
   

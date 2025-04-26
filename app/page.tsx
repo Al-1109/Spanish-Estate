@@ -33,6 +33,13 @@ const MainPage = () => {
   
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     e.preventDefault();
+    
+    // Сбрасываем текущее сообщение во всех случаях для очистки строки ввода
+    setChatMessage('');
+    
+    // При переходе по меню сворачиваем раскрытую карточку объекта
+    setExpandedPropertyId(null);
+    
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -40,6 +47,18 @@ const MainPage = () => {
     setMobileMenuOpen(false);
   };
   
+  // Функция прокрутки страницы наверх
+  const scrollToTop = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Сбрасываем текущее сообщение ИИ-консультанта и очищаем строку ввода
+    setChatMessage('');
+    
+    // Сворачиваем раскрытую карточку объекта
+    setExpandedPropertyId(null);
+  };
+
   // Функция прокрутки к блоку ИИ-консультанта с заполнением поля ввода
   const scrollToAIConsultant = (propertyTitle: string, location: string) => {
     // Устанавливаем сообщение с информацией об объекте
@@ -177,7 +196,12 @@ const MainPage = () => {
       {/* Шапка */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md" style={{ marginBottom: 0, paddingBottom: 0 }}>
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="text-2xl font-bold text-blue-900">Mirasol Estate</div>
+          <div 
+            className="text-2xl font-bold text-blue-900 cursor-pointer" 
+            onClick={scrollToTop}
+          >
+            Mirasol Estate
+          </div>
           
           <div className="hidden md:flex items-center space-x-6">
             <nav className="flex space-x-6">
@@ -511,6 +535,7 @@ const MainPage = () => {
             <div>
               <h3 className="text-xl font-bold mb-4">Навигация</h3>
               <ul className="space-y-2 text-blue-100">
+                <li><a href="#" onClick={scrollToTop} className="hover:text-white">Главная</a></li>
                 <li><a href="#properties" onClick={(e) => scrollToSection(e, 'properties')} className="hover:text-white">Каталог недвижимости</a></li>
                 <li><a href="#ai-consultant" onClick={(e) => scrollToSection(e, 'ai-consultant')} className="hover:text-white">Часто задаваемые вопросы</a></li>
                 <li><a href="#articles" onClick={(e) => scrollToSection(e, 'articles')} className="hover:text-white">Статьи</a></li>
