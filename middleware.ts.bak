@@ -1,0 +1,53 @@
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export async function middleware(req: NextRequest) {
+  // Создаем клиент Supabase для middleware
+  const res = NextResponse.next();
+  
+  // Обновленное создание клиента с использованием новой библиотеки
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    {
+      cookies: {
+        get: (name) => req.cookies.get(name)?.value,
+        set: (name, value, options) => {
+          res.cookies.set({ name, value, ...options });
+        },
+        remove: (name, options) => {
+          res.cookies.delete({ name, ...options });
+        },
+      },
+    }
+  );
+
+  // Проверяем, является ли запрашиваемый маршрут админ-маршрутом
+  const isAdminRoute = req.nextUrl.pathname.startsWith('/admin') && 
+                      !req.nextUrl.pathname.startsWith('/admin/login');
+
+  if (isAdminRoute) {
+    // Получаем сессию пользователя
+    const { data: { session } } = await supabase.auth.getSession();
+
+    // Проверяем наличие сессии и прав доступа
+    if (!session) {
+      // Перенаправляем на страницу входа
+      const redirectUrl = new URL('/admin/login', req.url);
+      // Сохраняем оригинальный URL для возврата после аутентификации
+      redirectUrl.searchParams.set('from', req.nextUrl.pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // В будущем здесь можно добавить проверку роли пользователя
+    // Например, является ли пользователь администратором
+  }
+
+  return res;
+}
+
+// Указываем маршруты, для которых должен быть запущен middleware
+export const config = {
+  matcher: ['/admin/:path*'],
+}; 

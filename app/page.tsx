@@ -566,6 +566,7 @@ const MainPage = () => {
             <div className="mt-2 flex justify-center space-x-4 text-sm">
               <a href="#" className="hover:text-white">Политика конфиденциальности</a>
               <a href="#" className="hover:text-white">Условия использования</a>
+              <a href="/admin/login" className="hover:text-white opacity-70 hover:opacity-100">Администратор</a>
             </div>
           </div>
         </div>

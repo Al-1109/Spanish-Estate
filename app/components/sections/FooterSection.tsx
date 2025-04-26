@@ -52,6 +52,7 @@ export function FooterSection() {
           <div className="legal-links">
             <a href="#privacy">Политика конфиденциальности</a>
             <a href="#terms">Условия использования</a>
+            <a href="/admin/login" className="ml-4 text-sm opacity-70 hover:opacity-100">Администратор</a>
           </div>
         </div>
       </div>

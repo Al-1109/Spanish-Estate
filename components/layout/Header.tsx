@@ -2,14 +2,18 @@ import React from 'react';
 import Link from 'next/link';
 
 export const Header: React.FC = () => {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <header className="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Логотип */}
-          <Link href="/" className="flex items-center space-x-2">
+          <div onClick={scrollToTop} className="flex items-center space-x-2 cursor-pointer">
             <span className="text-2xl font-playfair font-bold text-[#1A365D]">Spanish Estate</span>
-          </Link>
+          </div>
 
           {/* Навигация */}
           <nav className="hidden md:flex items-center space-x-8">
