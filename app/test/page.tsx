@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Script from 'next/script';
-import AddressAutocomplete from '../admin/properties/create/components/address-autocomplete';
+import AddressAutocomplete from '../admin/properties/create/components/address-autocomplete/index';
 
 // Примеры тестовых адресов для Испании
 const TEST_ADDRESSES = [
