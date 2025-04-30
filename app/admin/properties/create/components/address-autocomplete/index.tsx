@@ -32,6 +32,10 @@ interface AddressAutocompleteProps {
   city?: string;
   includeRegionCity?: boolean;
   readOnly?: boolean;
+  version?: number;
+  showActiveIndicator?: boolean;
+  showVersionBanner?: boolean;
+  showHouseNumberIndicator?: boolean;
 }
 
 const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
@@ -43,6 +47,10 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   city,
   includeRegionCity = true,
   readOnly = false,
+  version = 1,
+  showActiveIndicator = true,
+  showVersionBanner = false,
+  showHouseNumberIndicator = true
 }) => {
   const [inputValue, setInputValue] = useState(initialValue);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -132,8 +140,17 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
             searchQuery
-          )}&limit=5&addressdetails=1&countrycodes=es`
+          )}&limit=5&addressdetails=1&countrycodes=es`,
+          {
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'SpainEstates/1.0',
+              'Referer': 'https://spainestates.com/'
+            }
+          }
         );
+
+        console.log(`[AddressAutocomplete] Статус ответа API: ${response.status} ${response.statusText}`);
 
         if (!response.ok) {
           throw new Error(`Ошибка при получении данных: ${response.status} ${response.statusText}`);
@@ -141,6 +158,41 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
         const data = await response.json();
         console.log(`[AddressAutocomplete] Получено ${data.length} результатов:`, data);
+        
+        // Если нет результатов, попробуем другой вариант запроса
+        if (data.length === 0 && searchText.length > 5) {
+          console.log(`[AddressAutocomplete] Нет результатов, пробуем упрощенный запрос`);
+          
+          // Пробуем поиск с более коротким запросом (только первое слово)
+          const simplifiedQuery = searchText.split(' ')[0] + ', Spain';
+          
+          console.log(`[AddressAutocomplete] Упрощенный запрос: "${simplifiedQuery}"`);
+          
+          const fallbackResponse = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+              simplifiedQuery
+            )}&limit=5&addressdetails=1&countrycodes=es`,
+            {
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'SpainEstates/1.0',
+                'Referer': 'https://spainestates.com/'
+              }
+            }
+          );
+          
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            console.log(`[AddressAutocomplete] Упрощенный запрос вернул ${fallbackData.length} результатов:`, fallbackData);
+            
+            if (fallbackData.length > 0) {
+              setSuggestions(fallbackData);
+              setShowSuggestions(true);
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
         
         setSuggestions(data);
         setShowSuggestions(true);
@@ -206,17 +258,50 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   // Логирование при монтировании компонента для отладки
   useEffect(() => {
     console.log('[AddressAutocomplete] Компонент смонтирован');
-    console.log('[AddressAutocomplete] Параметры:', { city, region, includeRegionCity, initialValue });
+    console.log('[AddressAutocomplete] Параметры:', { 
+      city, 
+      region, 
+      includeRegionCity, 
+      initialValue,
+      version, 
+      showActiveIndicator, 
+      showVersionBanner 
+    });
+
+    // Выполняем тестовый запрос при монтировании для проверки доступности API
+    const testApi = async () => {
+      try {
+        console.log('[AddressAutocomplete] Выполняем тестовый запрос при монтировании');
+        const response = await fetch(
+          'https://nominatim.openstreetmap.org/search?format=json&q=Madrid&limit=1&countrycodes=es',
+          {
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'SpainEstates/1.0',
+              'Referer': 'https://spainestates.com/'
+            }
+          }
+        );
+        const data = await response.json();
+        console.log('[AddressAutocomplete] Тестовый запрос успешен:', data);
+      } catch (error) {
+        console.error('[AddressAutocomplete] Ошибка тестового запроса:', error);
+      }
+    };
+
+    testApi();
     
     return () => {
       console.log('[AddressAutocomplete] Компонент размонтирован');
     };
-  }, [city, region, includeRegionCity, initialValue]);
+  }, [city, region, includeRegionCity, initialValue, version, showActiveIndicator, showVersionBanner]);
 
   return (
     <div ref={wrapperRef} className="relative w-full">
-      {/* Добавляем скрытый маркер для отладки */}
-      <div className="hidden" data-testid="address-autocomplete-component">AddressAutocomplete-Marker-V1</div>
+      {/* Скрытый маркер компонента с версией */}
+      <div className="hidden" data-testid="address-autocomplete-component" data-version={version}>
+        AddressAutocomplete-Marker-V{version}
+      </div>
       
       <div className="relative">
         <input
@@ -244,12 +329,22 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         )}
       </div>
 
-      {/* Маркер видимости компонента */}
-      <div className="text-xs text-right text-gray-400 mt-1">
-        AddressAutocomplete активен
-      </div>
+      {/* Маркер активности компонента (условный) */}
+      {showActiveIndicator && (
+        <div className="text-xs text-right text-gray-400 mt-1">
+          AddressAutocomplete активен
+        </div>
+      )}
+
+      {/* Плашка с версией компонента (условная) */}
+      {showVersionBanner && (
+        <div className="bg-blue-100 text-blue-800 p-2 text-sm rounded mt-1 border-2 border-blue-400 font-semibold">
+          Используется новый компонент AddressAutocomplete v{version} — компонент доступен для тестирования на странице /test
+        </div>
+      )}
       
-      {houseNumber && (
+      {/* Индикатор найденного номера дома (условный) */}
+      {showHouseNumberIndicator && houseNumber && (
         <div className="text-xs text-left text-green-600 mt-1">
           Найден номер дома: {houseNumber}
         </div>

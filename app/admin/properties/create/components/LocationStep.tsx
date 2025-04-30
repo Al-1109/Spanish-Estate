@@ -4,7 +4,9 @@ import { FiMapPin, FiInfo, FiSearch, FiLoader } from 'react-icons/fi';
 import { Property } from '@/types/property';
 import LeafletMap from './map/LeafletMap';
 import type { AddressDetails } from './map/LeafletMap';
-import AddressAutocomplete from './address-autocomplete';
+import SimpleAddressSearch from './SimpleAddressSearch';
+import AddressAutocomplete from './address-autocomplete/index';
+import debounce from 'lodash/debounce';
 
 interface LocationStepProps {
   property?: Partial<Property>;
@@ -393,39 +395,72 @@ const LocationStep: React.FC<LocationStepProps> = () => {
             <label className="block text-sm font-medium mb-1">
               Адрес объекта
             </label>
-            <AddressAutocomplete 
-              onSelectAddress={(address, lat, lng) => {
-                // Обновляем данные формы
-                setValue('location.address', address, { shouldValidate: true });
-                setValue('location.coordinates.lat', lat, { shouldValidate: true });
-                setValue('location.coordinates.lng', lng, { shouldValidate: true });
-                
-                // Обновляем позицию маркера
-                setMarkerPosition([lat, lng]);
-                
-                // Устанавливаем статус валидации вручную
-                clearErrors('location.address');
-                clearErrors('location.coordinates.lat');
-                clearErrors('location.coordinates.lng');
-                
-                // Устанавливаем флаг для детального зума карты
-                setAddressWasSelected(true);
-                setShouldUseDetailedZoom(true);
-                
-                // Устанавливаем флаг только что выбранного адреса
-                setAddressJustSelected(true);
-                // Сбрасываем флаг через небольшое время
-                setTimeout(() => {
-                  setAddressJustSelected(false);
-                }, 1000);
-              }}
-              placeholder="Введите адрес объекта недвижимости"
-              initialValue={
-                (watch('location.address') as string) || ''
-              }
-            />
-            <div className="bg-blue-100 text-blue-800 p-2 text-sm rounded mt-1 border-2 border-blue-400 font-semibold">
-              Используется новый компонент AddressAutocomplete v1 — компонент доступен для тестирования на странице /test
+            
+            {/* Компонент автозаполнения из тестовой страницы */}
+            <div className="bg-white border-2 border-blue-500 rounded-md p-4 mb-4">
+              <h3 className="text-sm font-medium text-blue-800 mb-2">Поиск адреса (работающий вариант)</h3>
+              <AddressAutocomplete 
+                onSelectAddress={(address, lat, lon) => {
+                  // Обновляем данные формы
+                  setValue('location.address', address, { shouldValidate: true });
+                  setValue('location.coordinates.lat', lat, { shouldValidate: true });
+                  setValue('location.coordinates.lng', lon, { shouldValidate: true });
+                  
+                  // Обновляем позицию маркера
+                  setMarkerPosition([lat, lon]);
+                  
+                  // Устанавливаем статус валидации вручную
+                  clearErrors('location.address');
+                  clearErrors('location.coordinates.lat');
+                  clearErrors('location.coordinates.lng');
+                  
+                  // Устанавливаем флаг для детального зума карты
+                  setAddressWasSelected(true);
+                  setShouldUseDetailedZoom(true);
+                  
+                  // Устанавливаем флаг только что выбранного адреса
+                  setAddressJustSelected(true);
+                  // Сбрасываем флаг через небольшое время
+                  setTimeout(() => {
+                    setAddressJustSelected(false);
+                  }, 1000);
+                  
+                  // Информация для отладки
+                  console.log('LocationStep: Выбран адрес', { address, lat, lon });
+                }}
+                placeholder="Введите адрес объекта недвижимости"
+              />
+              
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Тестовый запрос к API
+                    fetch(
+                      'https://nominatim.openstreetmap.org/search?format=json&q=Madrid&limit=1&addressdetails=1&countrycodes=es',
+                      {
+                        headers: {
+                          'Accept': 'application/json',
+                          'User-Agent': 'SpainEstates/1.0',
+                          'Referer': 'https://spainestates.com/'
+                        }
+                      }
+                    )
+                    .then(response => response.json())
+                    .then(data => {
+                      console.log('Тест API успешен:', data);
+                      alert('API работает! Получен ответ.');
+                    })
+                    .catch(error => {
+                      console.error('Ошибка API:', error);
+                      alert('Ошибка API: ' + error.message);
+                    });
+                  }}
+                  className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                >
+                  Проверить API
+                </button>
+              </div>
             </div>
             
             {locationErrors.address && (
@@ -436,29 +471,21 @@ const LocationStep: React.FC<LocationStepProps> = () => {
         
         {/* Карта для выбора местоположения */}
         <div className="rounded-md overflow-hidden border border-gray-300" ref={mapRef}>
-          {(() => {
-            if (markerPosition) {
-              console.log('LocationStep: Создание LeafletMap с маркером, зум = 18');
-              return (
-                <LeafletMap 
-                  position={markerPosition} 
-                  setPosition={handleMapPositionChange}
-                  initialZoom={18}
-                  onAddressFound={handleAddressFound}
-                />
-              );
-            } else {
-              console.log('LocationStep: Создание LeafletMap без маркера, зум = 10');
-              return (
-                <LeafletMap 
-                  position={getInitialMapPosition()} 
-                  setPosition={handleMapPositionChange}
-                  initialZoom={10}
-                  onAddressFound={handleAddressFound}
-                />
-              );
-            }
-          })()}
+          {markerPosition ? (
+            <LeafletMap 
+              position={markerPosition} 
+              setPosition={handleMapPositionChange}
+              initialZoom={addressJustSelected ? 18 : (shouldUseDetailedZoom ? 18 : 15)}
+              onAddressFound={handleAddressFound}
+            />
+          ) : (
+            <LeafletMap 
+              position={getInitialMapPosition()} 
+              setPosition={handleMapPositionChange}
+              initialZoom={10}
+              onAddressFound={handleAddressFound}
+            />
+          )}
         </div>
         <div className="flex items-start mt-2">
           <FiInfo className="text-blue-500 mt-1 mr-2 flex-shrink-0" />
