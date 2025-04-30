@@ -424,6 +424,9 @@ const LocationStep: React.FC<LocationStepProps> = () => {
                 (watch('location.address') as string) || ''
               }
             />
+            <div className="bg-blue-100 text-blue-800 p-2 text-sm rounded mt-1 border-2 border-blue-400 font-semibold">
+              Используется новый компонент AddressAutocomplete v1 — компонент доступен для тестирования на странице /test
+            </div>
             
             {locationErrors.address && (
               <p className="text-red-500 text-sm mt-1">{locationErrors.address.message?.toString()}</p>
