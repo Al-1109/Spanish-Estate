@@ -117,25 +117,19 @@ const MapController = ({
   position, 
   setPosition, 
   onAddressFound,
-  detailedZoom = 18, // Зум-уровень для детального просмотра адреса
-  forceZoom = false  // Флаг принудительного зума
+  detailedZoom = 18 // Зум-уровень для детального просмотра адреса
 }: { 
   position: [number, number], 
   setPosition: (pos: [number, number]) => void,
   onAddressFound?: (addressDetails: AddressDetails) => void,
-  detailedZoom?: number,
-  forceZoom?: boolean
+  detailedZoom?: number
 }) => {
   const map = useMap();
   const [addressSelected, setAddressSelected] = useState(false);
   
   // Обновляем центр карты при изменении позиции с оптимальным зумом
   useEffect(() => {
-    if (forceZoom) {
-      // При принудительном зуме устанавливаем детальный вид
-      console.log(`Принудительный зум активирован: ${detailedZoom}`);
-      map.setView(position, detailedZoom, { animate: true });
-    } else if (addressSelected) {
+    if (addressSelected) {
       // Если адрес был выбран, используем детальный зум
       console.log(`Адрес выбран, меняем зум на ${detailedZoom}`);
       map.setView(position, detailedZoom, { animate: true });
@@ -143,7 +137,7 @@ const MapController = ({
       // Иначе просто обновляем позицию с текущим зумом
       map.setView(position, map.getZoom());
     }
-  }, [map, position, addressSelected, detailedZoom, forceZoom]);
+  }, [map, position, addressSelected, detailedZoom]);
   
   // Добавляем обработчик клика по карте
   useEffect(() => {
@@ -215,6 +209,7 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
     const marker = e.target;
     const position = marker.getLatLng();
     const newPosition: [number, number] = [position.lat, position.lng];
+    console.log(`Маркер перетащен на позицию: ${newPosition[0]}, ${newPosition[1]}`);
     setPosition(newPosition);
     
     // Устанавливаем флаг, что адрес был выбран пользователем
@@ -223,11 +218,19 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
     // Активируем принудительный зум
     setForceZoom(true);
     
+    // Устанавливаем детальный зум после перетаскивания для лучшей видимости
+    if (mapRef.current) {
+      mapRef.current.setView(newPosition, 18, { animate: true });
+    }
+    
     // Выполняем обратное геокодирование при перетаскивании маркера
     if (onAddressFound) {
       try {
+        console.log('Перетаскивание маркера: выполняем обратное геокодирование');
         const addressDetails = await reverseGeocode(position.lat, position.lng);
         if (addressDetails) {
+          console.log('Получены данные геокодирования после перетаскивания:', addressDetails);
+          // Принудительно вызываем обработчик onAddressFound для обновления значений формы
           onAddressFound(addressDetails);
         }
       } catch (error) {
@@ -316,7 +319,6 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
           setPosition={setPosition} 
           onAddressFound={onAddressFound}
           detailedZoom={18} // Детальный уровень зума для просмотра улицы
-          forceZoom={forceZoom}
         />
         <MapReference />
         <ForcedZoomController 
