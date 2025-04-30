@@ -396,9 +396,8 @@ const LocationStep: React.FC<LocationStepProps> = () => {
               Адрес объекта
             </label>
             
-            {/* Компонент автозаполнения из тестовой страницы */}
-            <div className="bg-white border-2 border-blue-500 rounded-md p-4 mb-4">
-              <h3 className="text-sm font-medium text-blue-800 mb-2">Поиск адреса (работающий вариант)</h3>
+            {/* Компонент автозаполнения адресов */}
+            <div className="mb-2">
               <AddressAutocomplete 
                 onSelectAddress={(address, lat, lon) => {
                   // Обновляем данные формы
@@ -430,37 +429,6 @@ const LocationStep: React.FC<LocationStepProps> = () => {
                 }}
                 placeholder="Введите адрес объекта недвижимости"
               />
-              
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Тестовый запрос к API
-                    fetch(
-                      'https://nominatim.openstreetmap.org/search?format=json&q=Madrid&limit=1&addressdetails=1&countrycodes=es',
-                      {
-                        headers: {
-                          'Accept': 'application/json',
-                          'User-Agent': 'SpainEstates/1.0',
-                          'Referer': 'https://spainestates.com/'
-                        }
-                      }
-                    )
-                    .then(response => response.json())
-                    .then(data => {
-                      console.log('Тест API успешен:', data);
-                      alert('API работает! Получен ответ.');
-                    })
-                    .catch(error => {
-                      console.error('Ошибка API:', error);
-                      alert('Ошибка API: ' + error.message);
-                    });
-                  }}
-                  className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                >
-                  Проверить API
-                </button>
-              </div>
             </div>
             
             {locationErrors.address && (
