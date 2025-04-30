@@ -104,6 +104,8 @@ const ForcedZoomController = ({
   useEffect(() => {
     if (active) {
       console.log(`ПРИНУДИТЕЛЬНЫЙ ЗУМ: Устанавливаем зум ${zoomLevel} для позиции ${position}`);
+      
+      // Установка зума с небольшой задержкой
       setTimeout(() => {
         map.setView(position, zoomLevel, { animate: true });
         // Обновляем позицию маркера
@@ -111,6 +113,24 @@ const ForcedZoomController = ({
           markerRef.current.setLatLng(position);
         }
       }, 300); // Небольшая задержка для гарантированной перерисовки
+      
+      // Повторная попытка через 500мс
+      setTimeout(() => {
+        console.log(`ПРИНУДИТЕЛЬНЫЙ ЗУМ: Повторная попытка зума ${zoomLevel}`);
+        map.setView(position, zoomLevel, { animate: true });
+        if (markerRef.current) {
+          markerRef.current.setLatLng(position);
+        }
+      }, 800);
+      
+      // Финальная попытка через 1.5 секунды
+      setTimeout(() => {
+        console.log(`ПРИНУДИТЕЛЬНЫЙ ЗУМ: Финальная попытка зума ${zoomLevel}`);
+        map.setView(position, zoomLevel, { animate: true });
+        if (markerRef.current) {
+          markerRef.current.setLatLng(position);
+        }
+      }, 1500);
     }
   }, [active, map, position, zoomLevel, markerRef]);
   
@@ -251,6 +271,9 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   onAddressFound,
   fullscreen = false
 }) => {
+  // Выводим значение initialZoom для отладки
+  console.log(`LeafletMap: initialZoom = ${initialZoom}, установка addressWasSelected = ${initialZoom >= 17}`);
+  
   // Refs для доступа к элементам Leaflet
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -259,6 +282,29 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   const [mapReady, setMapReady] = useState(false);
   const [addressWasSelected, setAddressWasSelected] = useState(initialZoom >= 17);
   const [forceZoom, setForceZoom] = useState(false);
+  
+  // При монтировании, если initialZoom высокий, значит нужен детальный вид
+  useEffect(() => {
+    if (initialZoom >= 17) {
+      console.log(`Высокий начальный зум ${initialZoom}, активируем режим выбранного адреса и принудительный зум`);
+      setAddressWasSelected(true);
+      setForceZoom(true);
+      
+      // Удостоверимся, что карта проинициализирована и зум установлен
+      if (mapRef.current) {
+        console.log(`Принудительная установка зума ${initialZoom} при инициализации`);
+        mapRef.current.setView(position, initialZoom, { animate: true });
+        
+        // Дополнительная попытка через таймаут для гарантии
+        setTimeout(() => {
+          if (mapRef.current) {
+            console.log(`Повторная попытка установки зума ${initialZoom} через таймаут`);
+            mapRef.current.setView(position, initialZoom, { animate: true });
+          }
+        }, 300);
+      }
+    }
+  }, [initialZoom, position, mapRef.current]);
   
   // Обработчик перетаскивания маркера
   const handleMarkerDragEnd = useCallback((e: any) => {

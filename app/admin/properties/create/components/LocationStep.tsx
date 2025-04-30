@@ -433,21 +433,29 @@ const LocationStep: React.FC<LocationStepProps> = () => {
         
         {/* Карта для выбора местоположения */}
         <div className="rounded-md overflow-hidden border border-gray-300" ref={mapRef}>
-          {markerPosition ? (
-            <LeafletMap 
-              position={markerPosition} 
-              setPosition={handleMapPositionChange}
-              initialZoom={addressJustSelected ? 18 : (shouldUseDetailedZoom ? 18 : 15)}
-              onAddressFound={handleAddressFound}
-            />
-          ) : (
-            <LeafletMap 
-              position={getInitialMapPosition()} 
-              setPosition={handleMapPositionChange}
-              initialZoom={10}
-              onAddressFound={handleAddressFound}
-            />
-          )}
+          {(() => {
+            if (markerPosition) {
+              console.log('LocationStep: Создание LeafletMap с маркером, зум = 18');
+              return (
+                <LeafletMap 
+                  position={markerPosition} 
+                  setPosition={handleMapPositionChange}
+                  initialZoom={18}
+                  onAddressFound={handleAddressFound}
+                />
+              );
+            } else {
+              console.log('LocationStep: Создание LeafletMap без маркера, зум = 10');
+              return (
+                <LeafletMap 
+                  position={getInitialMapPosition()} 
+                  setPosition={handleMapPositionChange}
+                  initialZoom={10}
+                  onAddressFound={handleAddressFound}
+                />
+              );
+            }
+          })()}
         </div>
         <div className="flex items-start mt-2">
           <FiInfo className="text-blue-500 mt-1 mr-2 flex-shrink-0" />
