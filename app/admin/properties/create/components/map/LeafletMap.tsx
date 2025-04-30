@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -12,7 +12,8 @@ interface LeafletMapProps {
   fullscreen?: boolean;
 }
 
-interface AddressDetails {
+// Структура данных адреса
+export interface AddressDetails {
   fullAddress: string;
   streetAddress?: string;
   city?: string;
@@ -59,23 +60,21 @@ const extractAddressDetails = (geocodeResult: any): AddressDetails => {
   return details;
 };
 
-// Делаем обратное геокодирование для получения адреса по координатам
+// Обратное геокодирование (получение адреса по координатам)
 const reverseGeocode = async (lat: number, lng: number): Promise<AddressDetails | null> => {
   try {
-    // Используем Nominatim для обратного геокодирования
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=ru`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'SpainEstates/1.0'
-      }
-    });
+    console.log(`Обратное геокодирование для координат: ${lat}, ${lng}`);
+    
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=es`
+    );
     
     if (!response.ok) {
-      throw new Error(`Ошибка обратного геокодирования: ${response.status}`);
+      throw new Error(`Ошибка запроса: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
-    console.log('Данные обратного геокодирования:', data);
+    console.log('Результаты обратного геокодирования:', data);
     
     if (data) {
       return extractAddressDetails(data);
@@ -88,15 +87,17 @@ const reverseGeocode = async (lat: number, lng: number): Promise<AddressDetails 
   }
 };
 
-// Компонент для принудительной установки зума
+// Компонент принудительного зума
 const ForcedZoomController = ({ 
   zoomLevel, 
   position, 
-  active = false 
+  active = false,
+  markerRef
 }: { 
   zoomLevel: number,
   position: [number, number],
-  active: boolean
+  active: boolean,
+  markerRef: React.RefObject<L.Marker>
 }) => {
   const map = useMap();
   
@@ -105,93 +106,42 @@ const ForcedZoomController = ({
       console.log(`ПРИНУДИТЕЛЬНЫЙ ЗУМ: Устанавливаем зум ${zoomLevel} для позиции ${position}`);
       setTimeout(() => {
         map.setView(position, zoomLevel, { animate: true });
+        // Обновляем позицию маркера
+        if (markerRef.current) {
+          markerRef.current.setLatLng(position);
+        }
       }, 300); // Небольшая задержка для гарантированной перерисовки
     }
-  }, [active, map, position, zoomLevel]);
+  }, [active, map, position, zoomLevel, markerRef]);
   
   return null;
 };
 
-// Компонент для управления картой и зумом
+// Компонент для управления картой и синхронизации маркера
 const MapController = ({ 
   position, 
   setPosition, 
   onAddressFound,
-  detailedZoom = 18 // Зум-уровень для детального просмотра адреса
+  markerRef,
+  detailedZoom = 18, // Зум-уровень для детального просмотра адреса
+  forceZoom = false  // Флаг принудительного зума
 }: { 
   position: [number, number], 
   setPosition: (pos: [number, number]) => void,
   onAddressFound?: (addressDetails: AddressDetails) => void,
-  detailedZoom?: number
+  markerRef: React.RefObject<L.Marker>,
+  detailedZoom?: number,
+  forceZoom?: boolean
 }) => {
   const map = useMap();
+  const mapInstanceRef = useRef<L.Map | null>(null);
   const [addressSelected, setAddressSelected] = useState(false);
   
-  // Обновляем центр карты при изменении позиции с оптимальным зумом
+  // Сохраняем ссылку на карту
   useEffect(() => {
-    if (addressSelected) {
-      // Если адрес был выбран, используем детальный зум
-      console.log(`Адрес выбран, меняем зум на ${detailedZoom}`);
-      map.setView(position, detailedZoom, { animate: true });
-    } else {
-      // Иначе просто обновляем позицию с текущим зумом
-      map.setView(position, map.getZoom());
-    }
-  }, [map, position, addressSelected, detailedZoom]);
-  
-  // Добавляем обработчик клика по карте
-  useEffect(() => {
-    const handleMapClick = async (e: L.LeafletMouseEvent) => {
-      const newPosition: [number, number] = [e.latlng.lat, e.latlng.lng];
-      setPosition(newPosition);
-      
-      // Выполняем обратное геокодирование для получения адреса
-      if (onAddressFound) {
-        try {
-          const addressDetails = await reverseGeocode(e.latlng.lat, e.latlng.lng);
-          if (addressDetails) {
-            onAddressFound(addressDetails);
-            // Устанавливаем флаг, что адрес был выбран
-            setAddressSelected(true);
-            // Увеличиваем масштаб для лучшего просмотра локации
-            console.log(`Клик на карте, устанавливаем зум ${detailedZoom}`);
-            map.setView(newPosition, detailedZoom, { animate: true });
-          }
-        } catch (error) {
-          console.error('Ошибка при обновлении адреса:', error);
-        }
-      }
-    };
+    mapInstanceRef.current = map;
     
-    map.on('click', handleMapClick);
-    
-    return () => {
-      map.off('click', handleMapClick);
-    };
-  }, [map, setPosition, onAddressFound, detailedZoom]);
-  
-  return null;
-};
-
-const LeafletMap: React.FC<LeafletMapProps> = ({ 
-  position, 
-  setPosition, 
-  initialZoom = 13,
-  onAddressFound,
-  fullscreen = false
-}) => {
-  // Референс на карту для управления зумом извне
-  const mapRef = useRef<L.Map | null>(null);
-  const [mapReady, setMapReady] = useState(false);
-  
-  // Флаг, указывающий, что позиция была намеренно выбрана пользователем
-  const [addressWasSelected, setAddressWasSelected] = useState(false);
-  
-  // Флаг для принудительного зума
-  const [forceZoom, setForceZoom] = useState(false);
-
-  // Фикс для иконок маркеров в Leaflet
-  useEffect(() => {
+    // Фикс для иконок Leaflet
     try {
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
@@ -202,46 +152,147 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
     } catch (error) {
       console.error('Ошибка при исправлении иконок Leaflet:', error);
     }
-  }, []);
+  }, [map]);
   
-  // Обработчик события перетаскивания маркера
-  const handleMarkerDragEnd = async (e: any) => {
+  // Обновляем центр карты при изменении позиции с оптимальным зумом
+  useEffect(() => {
+    if (forceZoom) {
+      // При принудительном зуме устанавливаем детальный вид
+      console.log(`Принудительный зум активирован: ${detailedZoom}`);
+      map.setView(position, detailedZoom, { animate: true });
+    } else if (addressSelected) {
+      // Если адрес был выбран, используем детальный зум
+      console.log(`Адрес выбран, меняем зум на ${detailedZoom}`);
+      map.setView(position, detailedZoom, { animate: true });
+    } else {
+      // Иначе просто обновляем позицию с текущим зумом
+      map.setView(position, map.getZoom());
+    }
+    
+    // Синхронизируем маркер
+    if (markerRef.current) {
+      markerRef.current.setLatLng(position);
+    }
+  }, [map, position, addressSelected, detailedZoom, forceZoom, markerRef]);
+  
+  // Обработчик события изменения масштаба
+  useEffect(() => {
+    const handleZoomEnd = () => {
+      console.log('Обработка события zoomend, синхронизация маркера');
+      // Принудительно обновляем позицию маркера после изменения масштаба
+      if (markerRef.current) {
+        markerRef.current.setLatLng(position);
+      }
+    };
+    
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.on('zoomend', handleZoomEnd);
+    }
+    
+    // Отписываемся от событий при размонтировании
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.off('zoomend', handleZoomEnd);
+      }
+    };
+  }, [mapInstanceRef.current, position, markerRef]);
+  
+  // Обработчик клика по карте
+  useEffect(() => {
+    const handleMapClick = async (e: L.LeafletMouseEvent) => {
+      const newPosition: [number, number] = [e.latlng.lat, e.latlng.lng];
+      console.log(`Клик на карте: ${newPosition[0]}, ${newPosition[1]}`);
+      setPosition(newPosition);
+      
+      // Устанавливаем флаг, что адрес был выбран
+      setAddressSelected(true);
+      
+      // Масштабируем карту до детального просмотра
+      map.setView(newPosition, detailedZoom, { animate: true });
+      
+      // Синхронизируем маркер
+      if (markerRef.current) {
+        markerRef.current.setLatLng(newPosition);
+      }
+      
+      // Выполняем обратное геокодирование
+      if (onAddressFound) {
+        try {
+          const addressDetails = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+          if (addressDetails) {
+            console.log('Получен адрес по клику:', addressDetails);
+            onAddressFound(addressDetails);
+          }
+        } catch (error) {
+          console.error('Ошибка геокодирования:', error);
+        }
+      }
+    };
+    
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.on('click', handleMapClick);
+    }
+    
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.off('click', handleMapClick);
+      }
+    };
+  }, [mapInstanceRef.current, setPosition, onAddressFound, map, markerRef, detailedZoom]);
+  
+  return null;
+};
+
+// Основной компонент карты
+const LeafletMap: React.FC<LeafletMapProps> = ({ 
+  position, 
+  setPosition, 
+  initialZoom = 13,
+  onAddressFound,
+  fullscreen = false
+}) => {
+  // Refs для доступа к элементам Leaflet
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  
+  // Состояние компонента
+  const [mapReady, setMapReady] = useState(false);
+  const [addressWasSelected, setAddressWasSelected] = useState(initialZoom >= 17);
+  const [forceZoom, setForceZoom] = useState(false);
+  
+  // Обработчик перетаскивания маркера
+  const handleMarkerDragEnd = useCallback((e: any) => {
     const marker = e.target;
     const position = marker.getLatLng();
     const newPosition: [number, number] = [position.lat, position.lng];
     console.log(`Маркер перетащен на позицию: ${newPosition[0]}, ${newPosition[1]}`);
+    
+    // Обновляем позицию в состоянии React
     setPosition(newPosition);
     
-    // Устанавливаем флаг, что адрес был выбран пользователем
+    // Устанавливаем флаг, что адрес был выбран
     setAddressWasSelected(true);
     
     // Активируем принудительный зум
     setForceZoom(true);
     
-    // Устанавливаем детальный зум после перетаскивания для лучшей видимости
-    if (mapRef.current) {
-      mapRef.current.setView(newPosition, 18, { animate: true });
-    }
-    
     // Выполняем обратное геокодирование при перетаскивании маркера
     if (onAddressFound) {
-      try {
-        console.log('Перетаскивание маркера: выполняем обратное геокодирование');
-        const addressDetails = await reverseGeocode(position.lat, position.lng);
+      reverseGeocode(position.lat, position.lng).then(addressDetails => {
         if (addressDetails) {
           console.log('Получены данные геокодирования после перетаскивания:', addressDetails);
-          // Принудительно вызываем обработчик onAddressFound для обновления значений формы
           onAddressFound(addressDetails);
         }
-      } catch (error) {
+      }).catch(error => {
         console.error('Ошибка при обновлении адреса после перетаскивания:', error);
-      }
+      });
     }
-  };
-
-  // Сохраняем референс на карту при её создании
+  }, [setPosition, onAddressFound]);
+  
+  // Получение ссылки на карту
   const handleMapCreated = (map: L.Map) => {
     mapRef.current = map;
+    console.log('Карта инициализирована');
     setMapReady(true);
     
     // Если уже выбран адрес, сразу активируем принудительный зум
@@ -250,7 +301,7 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
       setForceZoom(true);
     }
   };
-
+  
   // Обновляем зум карты когда все компоненты готовы
   useEffect(() => {
     if (mapRef.current && mapReady && addressWasSelected) {
@@ -286,15 +337,6 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
     return null;
   };
   
-  // При монтировании, если initialZoom высокий, значит нужен детальный вид
-  useEffect(() => {
-    if (initialZoom >= 17) {
-      console.log(`Высокий начальный зум ${initialZoom}, активируем режим выбранного адреса`);
-      setAddressWasSelected(true);
-      setForceZoom(true);
-    }
-  }, [initialZoom]);
-  
   return (
     <div style={{ height: fullscreen ? '100vh' : '400px', width: '100%', position: 'relative' }}>
       <MapContainer 
@@ -307,25 +349,35 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        
+        {/* Маркер с ref для прямого доступа к DOM-элементу */}
         <Marker 
           position={position}
           draggable={true}
           eventHandlers={{
             dragend: handleMarkerDragEnd
           }}
+          ref={markerRef}
         />
+        
+        {/* Контроллер для синхронизации карты и маркера */}
         <MapController 
           position={position} 
           setPosition={setPosition} 
           onAddressFound={onAddressFound}
-          detailedZoom={18} // Детальный уровень зума для просмотра улицы
+          markerRef={markerRef}
+          forceZoom={forceZoom}
         />
-        <MapReference />
+        
+        {/* Принудительный зум при необходимости */}
         <ForcedZoomController 
           zoomLevel={18} 
           position={position}
-          active={forceZoom || addressWasSelected} 
+          active={forceZoom} 
+          markerRef={markerRef}
         />
+        
+        <MapReference />
       </MapContainer>
       <div className="bg-gray-100 text-xs text-gray-500 p-1 border-t border-gray-300">
         <span className="block text-center">Кликните на карте или перетащите маркер, чтобы указать точное местоположение</span>
@@ -334,5 +386,4 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   );
 };
 
-export type { AddressDetails };
 export default LeafletMap; 
