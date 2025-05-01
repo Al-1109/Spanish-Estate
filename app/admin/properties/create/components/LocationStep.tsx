@@ -7,6 +7,7 @@ import type { AddressDetails } from './map/LeafletMap';
 import SimpleAddressSearch from './SimpleAddressSearch';
 import AddressAutocomplete from './address-autocomplete/index';
 import debounce from 'lodash/debounce';
+import Script from 'next/script';
 
 interface LocationStepProps {
   property?: Partial<Property>;
@@ -396,39 +397,60 @@ const LocationStep: React.FC<LocationStepProps> = () => {
               Адрес объекта
             </label>
             
-            {/* Компонент автозаполнения адресов */}
+            {/* Точная копия из тестовой страницы */}
             <div className="mb-2">
-              <AddressAutocomplete 
-                onSelectAddress={(address, lat, lon) => {
-                  // Обновляем данные формы
-                  setValue('location.address', address, { shouldValidate: true });
-                  setValue('location.coordinates.lat', lat, { shouldValidate: true });
-                  setValue('location.coordinates.lng', lon, { shouldValidate: true });
-                  
-                  // Обновляем позицию маркера
-                  setMarkerPosition([lat, lon]);
-                  
-                  // Устанавливаем статус валидации вручную
-                  clearErrors('location.address');
-                  clearErrors('location.coordinates.lat');
-                  clearErrors('location.coordinates.lng');
-                  
-                  // Устанавливаем флаг для детального зума карты
-                  setAddressWasSelected(true);
-                  setShouldUseDetailedZoom(true);
-                  
-                  // Устанавливаем флаг только что выбранного адреса
-                  setAddressJustSelected(true);
-                  // Сбрасываем флаг через небольшое время
-                  setTimeout(() => {
-                    setAddressJustSelected(false);
-                  }, 1000);
-                  
-                  // Информация для отладки
-                  console.log('LocationStep: Выбран адрес', { address, lat, lon });
-                }}
-                placeholder="Введите адрес объекта недвижимости"
-              />
+              <div className="bg-white p-4 rounded-lg shadow">
+                <h2 className="text-xl font-bold mb-4">Адрес объекта недвижимости</h2>
+                <Script src="/clearCache.js" />
+                <AddressAutocomplete
+                  onSelectAddress={(address, lat, lon) => {
+                    // Обновляем данные формы
+                    setValue('location.address', address, { shouldValidate: true });
+                    setValue('location.coordinates.lat', lat, { shouldValidate: true });
+                    setValue('location.coordinates.lng', lon, { shouldValidate: true });
+                    
+                    // Обновляем позицию маркера
+                    setMarkerPosition([lat, lon]);
+                    
+                    // Устанавливаем статус валидации вручную
+                    clearErrors('location.address');
+                    clearErrors('location.coordinates.lat');
+                    clearErrors('location.coordinates.lng');
+                    
+                    // Устанавливаем флаг для детального зума карты
+                    setAddressWasSelected(true);
+                    setShouldUseDetailedZoom(true);
+                    
+                    // Устанавливаем флаг только что выбранного адреса
+                    setAddressJustSelected(true);
+                    // Сбрасываем флаг через небольшое время
+                    setTimeout(() => {
+                      setAddressJustSelected(false);
+                    }, 1000);
+                    
+                    // Информация для отладки
+                    console.log('LocationStep: Выбран адрес', { address, lat, lon });
+                  }}
+                  placeholder="Введите адрес объекта недвижимости (например, Торревьеха, Аликанте)"
+                />
+                
+                <div className="mt-4 flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && 'clearBrowserCache' in window) {
+                        // @ts-ignore
+                        window.clearBrowserCache();
+                      } else {
+                        alert('Функция очистки кэша недоступна');
+                      }
+                    }}
+                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  >
+                    Очистить кэш браузера
+                  </button>
+                </div>
+              </div>
             </div>
             
             {locationErrors.address && (

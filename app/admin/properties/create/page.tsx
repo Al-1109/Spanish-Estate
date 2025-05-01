@@ -847,16 +847,6 @@ export default function CreatePropertyPage() {
 
   return (
     <div className="min-h-full bg-gray-50">
-      <Script 
-        src="/clearCache.js" 
-        strategy="beforeInteractive"
-        onLoad={() => {
-          console.log("[DEBUG] clearCache.js загружен успешно");
-        }}
-        onError={(e) => {
-          console.error("[ERROR] Ошибка загрузки clearCache.js:", e);
-        }}
-      />
       <main className="py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="md:flex md:items-center md:justify-between mb-8">
