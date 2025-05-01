@@ -1,3 +1,30 @@
+# Иерархия веток проекта
+
+```
+admin-panel (основная ветка админ-панели)
+  ├── admin-panel-property-steps-location (компонент расположения)
+  │   └── admin-panel-property-steps-location-stable-map-full (стабильная версия карты)
+  ├── admin-panel-property-steps-basic-info (раздел описания)
+  └── admin-panel-preview (компонент предпросмотра объектов)
+```
+
+## Ветка admin-panel-property-steps-location-stable-map-full
+
+### Критические неотслеживаемые файлы
+- app/admin/properties/create/components/LocationStep.tsx
+- app/admin/properties/create/components/address-autocomplete/index.tsx
+- app/admin/properties/create/components/map/LeafletMap.tsx
+- lib/api.ts (для работы с данными)
+- components/ui/Toast.tsx (компонент уведомлений)
+
+### Назначение
+Стабильная версия компонента Location с полной функциональностью карты и автозаполнением адреса. Включает:
+- Отображение карты Leaflet
+- Поиск адресов с помощью Nominatim API
+- Определение региона и города из адреса
+- Извлечение номеров домов из поискового запроса
+- Поддержка масштабирования карты для лучшей видимости адреса
+
 # Статус разработки ветки admin-panel
 
 ## Текущий статус
