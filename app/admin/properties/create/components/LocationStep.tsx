@@ -384,9 +384,16 @@ const LocationStep: React.FC<LocationStepProps> = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold mb-2">Расположение объекта</h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 mb-2">
           Укажите где находится объект недвижимости
         </p>
+        <div className="flex items-start mb-4">
+          <FiInfo className="text-blue-500 mt-1 mr-2 flex-shrink-0" />
+          <p className="text-sm text-gray-600">
+            Начните вводить адрес и выберите подходящий вариант из выпадающего списка или кликните на карте, 
+            чтобы указать местоположение. Координаты и адрес будут заполнены автоматически.
+          </p>
+        </div>
       </div>
       
       {/* Форма поиска адреса с автозаполнением */}
@@ -397,10 +404,9 @@ const LocationStep: React.FC<LocationStepProps> = () => {
               Адрес объекта
             </label>
             
-            {/* Точная копия из тестовой страницы */}
+            {/* Компонент автозаполнения адресов */}
             <div className="mb-2">
               <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-xl font-bold mb-4">Адрес объекта недвижимости</h2>
                 <Script src="/clearCache.js" />
                 <AddressAutocomplete
                   onSelectAddress={(address, lat, lon) => {
@@ -476,13 +482,6 @@ const LocationStep: React.FC<LocationStepProps> = () => {
               onAddressFound={handleAddressFound}
             />
           )}
-        </div>
-        <div className="flex items-start mt-2">
-          <FiInfo className="text-blue-500 mt-1 mr-2 flex-shrink-0" />
-          <p className="text-sm text-gray-600">
-            Начните вводить адрес и выберите подходящий вариант из выпадающего списка или кликните на карте, 
-            чтобы указать местоположение. Координаты и адрес будут заполнены автоматически.
-          </p>
         </div>
         
         {/* Скрытые поля выбора региона и города, которые заполняются автоматически */}
@@ -566,14 +565,6 @@ const LocationStep: React.FC<LocationStepProps> = () => {
             />
           </div>
         </div>
-      </div>
-      
-      <div className="flex items-center space-x-2 text-gray-700 mt-4 p-3 bg-blue-50 rounded-md">
-        <FiMapPin className="text-blue-500 flex-shrink-0" />
-        <span className="text-sm">
-          Точное расположение объекта важно для показа его на картах и расчета расстояний до моря 
-          и ключевых объектов инфраструктуры.
-        </span>
       </div>
     </div>
   );
