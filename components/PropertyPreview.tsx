@@ -3,6 +3,17 @@ import Image from 'next/image';
 import { FiHome, FiMap, FiDollarSign, FiMaximize } from 'react-icons/fi';
 import { IoBed, IoWater } from 'react-icons/io5';
 import { Property } from '@/types/property';
+import dynamic from 'next/dynamic';
+
+// Динамический импорт компонента карты для предотвращения ошибок SSR
+const DynamicMapComponent = dynamic(() => import('@/app/admin/properties/create/components/map/LeafletMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-52 w-full bg-gray-100 flex items-center justify-center">
+      <p className="text-gray-500">Загрузка карты...</p>
+    </div>
+  )
+});
 
 interface PropertyPreviewProps {
   property: Partial<Property>;
@@ -180,6 +191,25 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = ({ property, mode = 'com
           <FiMap className="mr-2" />
           <span>{addressString}</span>
         </div>
+        
+        {/* Добавляем блок с картой если есть координаты */}
+        {property.location?.coordinates && 
+         property.location.coordinates.lat && 
+         property.location.coordinates.lng && (
+          <div className="mb-6 mt-4 relative">
+            <h2 className="text-lg font-semibold mb-3">Расположение</h2>
+            <div className="h-52 w-full rounded-md overflow-hidden border border-gray-200 relative z-10">
+              <DynamicMapComponent
+                position={[property.location.coordinates.lat, property.location.coordinates.lng]}
+                setPosition={() => {}}
+                addressWasSelected={true}
+                addressJustSelected={false}
+                shouldUseDetailedZoom={true}
+                onAddressFound={() => {}}
+              />
+            </div>
+          </div>
+        )}
         
         <div className="flex justify-between items-center py-4 border-t border-b border-gray-200 my-4">
           <div className="flex space-x-6">

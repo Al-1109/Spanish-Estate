@@ -3,6 +3,34 @@ import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
+// Важно: исправление для иконок Leaflet (должно быть в начале файла)
+if (typeof window !== 'undefined') {
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  });
+}
+
+// Стили для исправления отображения карты
+const mapContainerStyle = {
+  position: 'relative' as 'relative',
+  width: '100%',
+  height: '100%',
+  zIndex: 5
+};
+
+// Стили для контейнера карты
+const mapWrapperStyle = {
+  position: 'relative' as 'relative',
+  width: '100%',
+  height: '100%',
+  minHeight: '400px',
+  display: 'flex',
+  flexDirection: 'column' as 'column'
+};
+
 // Базовый компонент карты
 interface LeafletMapProps {
   position: [number, number];
@@ -10,6 +38,10 @@ interface LeafletMapProps {
   initialZoom?: number;
   onAddressFound?: (addressDetails: AddressDetails) => void;
   fullscreen?: boolean;
+  // Новые пропсы для контроля зума и отображения
+  addressWasSelected?: boolean;
+  addressJustSelected?: boolean;
+  shouldUseDetailedZoom?: boolean;
 }
 
 // Структура данных адреса
@@ -269,162 +301,249 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   setPosition, 
   initialZoom = 13,
   onAddressFound,
-  fullscreen = false
+  fullscreen = false,
+  addressWasSelected = false,
+  addressJustSelected = false,
+  shouldUseDetailedZoom = false
 }) => {
   // Выводим значение initialZoom для отладки
-  console.log(`LeafletMap: initialZoom = ${initialZoom}, установка addressWasSelected = ${initialZoom >= 17}`);
+  console.log(`LeafletMap initialZoom: ${initialZoom}`);
   
-  // Refs для доступа к элементам Leaflet
-  const mapRef = useRef<L.Map | null>(null);
+  // Реф для маркера
   const markerRef = useRef<L.Marker | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
   
   // Состояние компонента
   const [mapReady, setMapReady] = useState(false);
-  const [addressWasSelected, setAddressWasSelected] = useState(initialZoom >= 17);
   const [forceZoom, setForceZoom] = useState(false);
   
-  // При монтировании, если initialZoom высокий, значит нужен детальный вид
+  // В режиме принудительного зума используем специфический начальный зум
+  const effectiveInitialZoom = initialZoom;
+  
+  // Вычисляем зум-уровень для детального просмотра
+  const detailedZoom = 18;
+  
+  // Установка начальных значений
   useEffect(() => {
+    console.log(`Инициализация LeafletMap с position=${position}, zoom=${effectiveInitialZoom}`);
+    
+    // Если карта обновляется с высоким начальным зумом, активируем режим детализации
     if (initialZoom >= 17) {
       console.log(`Высокий начальный зум ${initialZoom}, активируем режим выбранного адреса и принудительный зум`);
-      setAddressWasSelected(true);
       setForceZoom(true);
       
-      // Удостоверимся, что карта проинициализирована и зум установлен
-      if (mapRef.current) {
-        console.log(`Принудительная установка зума ${initialZoom} при инициализации`);
-        mapRef.current.setView(position, initialZoom, { animate: true });
-        
-        // Дополнительная попытка через таймаут для гарантии
-        setTimeout(() => {
-          if (mapRef.current) {
-            console.log(`Повторная попытка установки зума ${initialZoom} через таймаут`);
-            mapRef.current.setView(position, initialZoom, { animate: true });
-          }
-        }, 300);
-      }
+      // Для корректной работы принудительного зума с высоким начальным значением
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.setView(position, initialZoom, { animate: true });
+        }
+      }, 100);
     }
   }, [initialZoom, position, mapRef.current]);
   
-  // Обработчик перетаскивания маркера
-  const handleMarkerDragEnd = useCallback((e: any) => {
-    const marker = e.target;
-    const position = marker.getLatLng();
-    const newPosition: [number, number] = [position.lat, position.lng];
-    console.log(`Маркер перетащен на позицию: ${newPosition[0]}, ${newPosition[1]}`);
+  // Обработчик клика на карте
+  const handleMapClick = async (e: L.LeafletMouseEvent) => {
+    console.log(`Клик на карте: ${e.latlng.lat}, ${e.latlng.lng}`);
     
-    // Обновляем позицию в состоянии React
+    // Обновляем позицию
+    const newPosition: [number, number] = [e.latlng.lat, e.latlng.lng];
     setPosition(newPosition);
-    
-    // Устанавливаем флаг, что адрес был выбран
-    setAddressWasSelected(true);
     
     // Активируем принудительный зум
     setForceZoom(true);
     
-    // Выполняем обратное геокодирование при перетаскивании маркера
+    // Выполняем обратное геокодирование, если нужно
     if (onAddressFound) {
-      reverseGeocode(position.lat, position.lng).then(addressDetails => {
+      try {
+        console.log('Выполняем обратное геокодирование для координат...');
+        const addressDetails = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+        
         if (addressDetails) {
-          console.log('Получены данные геокодирования после перетаскивания:', addressDetails);
+          console.log('Получены данные адреса:', addressDetails);
           onAddressFound(addressDetails);
+          
+          // Устанавливаем специальный зум-уровень для лучшего отображения здания
+          if (mapRef.current) {
+            mapRef.current.setView(newPosition, detailedZoom, { animate: true });
+          }
+        } else {
+          console.warn('Не удалось получить данные адреса');
         }
-      }).catch(error => {
-        console.error('Ошибка при обновлении адреса после перетаскивания:', error);
-      });
-    }
-  }, [setPosition, onAddressFound]);
-  
-  // Получение ссылки на карту
-  const handleMapCreated = (map: L.Map) => {
-    mapRef.current = map;
-    console.log('Карта инициализирована');
-    setMapReady(true);
-    
-    // Если уже выбран адрес, сразу активируем принудительный зум
-    if (addressWasSelected) {
-      console.log('Карта создана, активируем принудительный зум из-за выбранного адреса');
-      setForceZoom(true);
+      } catch (error) {
+        console.error('Ошибка при получении адреса:', error);
+      }
     }
   };
   
-  // Обновляем зум карты когда все компоненты готовы
-  useEffect(() => {
-    if (mapRef.current && mapReady && addressWasSelected) {
-      console.log('Все компоненты готовы и адрес выбран, принудительно устанавливаем зум 18');
-      mapRef.current.setView(position, 18, { animate: true });
-      
-      // Делаем двойную проверку через таймаут для гарантии
-      setTimeout(() => {
-        if (mapRef.current) {
-          console.log('Повторная попытка установки зума через таймаут');
-          mapRef.current.setView(position, 18, { animate: true });
-        }
-      }, 500);
-    }
-  }, [position, mapReady, addressWasSelected]);
+  // Функция инициализации карты
+  const handleMapCreated = (map: L.Map) => {
+    console.log('Карта создана, сохраняем ссылку');
+    mapRef.current = map;
+    
+    console.log('Карта инициализирована');
+    setMapReady(true);
+  };
   
-  // При изменении позиции активируем принудительный зум, если адрес был выбран
+  // Эффект для управления принудительным зумом при выборе адреса
   useEffect(() => {
-    if (addressWasSelected && mapReady) {
-      console.log('Позиция изменилась, активируем принудительный зум');
+    console.log(`Изменение флагов: addressWasSelected=${addressWasSelected}, shouldUseDetailedZoom=${shouldUseDetailedZoom}`);
+    
+    if (shouldUseDetailedZoom && addressWasSelected) {
+      console.log('Активация принудительного зума для адреса');
       setForceZoom(true);
     }
-  }, [position, addressWasSelected, mapReady]);
+  }, [position, addressWasSelected, shouldUseDetailedZoom]);
   
-  // Компонент для получения ссылки на карту
+  // Эффект для сброса форсированного зума
+  useEffect(() => {
+    if (addressJustSelected && mapReady) {
+      console.log('Адрес только что выбран, устанавливаем принудительный зум');
+      setForceZoom(true);
+      
+      // Если карта готова, устанавливаем вид напрямую
+      if (mapRef.current) {
+        console.log(`Установка прямого зума на ${detailedZoom} для позиции ${position}`);
+        mapRef.current.setView(position, 18, { animate: true });
+      }
+    }
+  }, [position, addressJustSelected, mapReady]);
+  
+  // Автоматический сброс принудительного зума после задержки
+  useEffect(() => {
+    if (forceZoom) {
+      const timer = setTimeout(() => {
+        console.log('Сброс принудительного зума после задержки');
+        setForceZoom(false);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [forceZoom]);
+  
+  // Компонент для доступа к экземпляру карты
   const MapReference = () => {
     const map = useMap();
     
     useEffect(() => {
+      console.log('Сохраняем ссылку на карту из MapReference');
       handleMapCreated(map);
     }, [map]);
     
-    return null;
-  };
+    return (
+      <>
+        <ForcedZoomController 
+          zoomLevel={detailedZoom} 
+          position={position} 
+          active={forceZoom}
+          markerRef={markerRef}
+        />
+        
+        <MapController 
+          position={position} 
+          setPosition={setPosition}
+          markerRef={markerRef}
+          onAddressFound={onAddressFound}
+          detailedZoom={detailedZoom}
+          forceZoom={forceZoom}
+        />
+      </>
+    );
+  }
+  
+  // Вычисляем стили для контейнера карты
+  const mapStyle = fullscreen 
+    ? { height: '100vh', width: '100%' }
+    : { height: '400px', width: '100%' };
   
   return (
-    <div style={{ height: fullscreen ? '100vh' : '400px', width: '100%', position: 'relative' }}>
-      <MapContainer 
-        center={position} 
-        zoom={initialZoom} 
+    <div className="relative w-full h-full" style={mapWrapperStyle}>
+      <MapContainer
+        center={position}
+        zoom={initialZoom}
+        style={mapContainerStyle}
+        className="leaflet-container-fixed"
+        whenCreated={handleMapCreated}
         scrollWheelZoom={true}
-        style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* Маркер с ref для прямого доступа к DOM-элементу */}
         <Marker 
           position={position}
           draggable={true}
           eventHandlers={{
-            dragend: handleMarkerDragEnd
+            dragend: (e: any) => {
+              const marker = e.target;
+              const position = marker.getLatLng();
+              const newPosition: [number, number] = [position.lat, position.lng];
+              console.log(`Маркер перемещен: ${newPosition}`);
+              setPosition(newPosition);
+            }
           }}
           ref={markerRef}
         />
         
-        {/* Контроллер для синхронизации карты и маркера */}
-        <MapController 
-          position={position} 
-          setPosition={setPosition} 
-          onAddressFound={onAddressFound}
-          markerRef={markerRef}
-          forceZoom={forceZoom}
-        />
-        
-        {/* Принудительный зум при необходимости */}
-        <ForcedZoomController 
-          zoomLevel={18} 
-          position={position}
-          active={forceZoom} 
-          markerRef={markerRef}
-        />
-        
         <MapReference />
       </MapContainer>
+      
+      <style jsx global>{`
+        .leaflet-container-fixed {
+          position: relative !important;
+          width: 100%;
+          height: 100%;
+          z-index: 5;
+          min-height: 400px;
+        }
+        .leaflet-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          min-height: 400px;
+          z-index: 1;
+        }
+        .leaflet-pane {
+          z-index: 10;
+        }
+        .leaflet-tile, 
+        .leaflet-marker-icon, 
+        .leaflet-marker-shadow, 
+        .leaflet-tile-container, 
+        .leaflet-pane > svg, 
+        .leaflet-pane > canvas, 
+        .leaflet-control {
+          position: absolute;
+          pointer-events: auto;
+        }
+        .leaflet-tile-container {
+          display: block !important;
+          visibility: visible !important;
+        }
+      `}</style>
+      
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          // Принудительное обновление размера карты после загрузки
+          setTimeout(function() {
+            var maps = document.querySelectorAll('.leaflet-container');
+            for (var i = 0; i < maps.length; i++) {
+              var map = maps[i];
+              var event = new Event('resize');
+              window.dispatchEvent(event);
+              
+              // Принудительный перерендер карты
+              if (map && map._leaflet_id) {
+                var leafletInstance = map._leaflet;
+                if (leafletInstance && leafletInstance.invalidateSize) {
+                  leafletInstance.invalidateSize(true);
+                }
+              }
+            }
+          }, 500);
+        })();
+      `}} />
+      
       <div className="bg-gray-100 text-xs text-gray-500 p-1 border-t border-gray-300">
         <span className="block text-center">Кликните на карте или перетащите маркер, чтобы указать точное местоположение</span>
       </div>
