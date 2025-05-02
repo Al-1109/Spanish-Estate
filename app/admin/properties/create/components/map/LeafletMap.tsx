@@ -11,6 +11,26 @@ if (typeof window !== 'undefined') {
     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
   });
+
+  // Дополнительно явно задаём стили для иконок маркеров
+  const style = document.createElement('style');
+  style.textContent = `
+    .leaflet-marker-icon {
+      width: 25px !important;
+      height: 41px !important;
+      display: block !important;
+      visibility: visible !important;
+      z-index: 999 !important;
+    }
+    .leaflet-marker-shadow {
+      width: 41px !important;
+      height: 41px !important;
+      display: block !important;
+      visibility: visible !important;
+      z-index: 998 !important;
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 // Стили для исправления отображения карты
@@ -321,7 +341,42 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   const effectiveInitialZoom = initialZoom;
   
   // Вычисляем зум-уровень для детального просмотра
-  const detailedZoom = 18;
+  const detailedZoom = shouldUseDetailedZoom ? 18 : initialZoom;
+  
+  // Гарантируем, что маркер будет доступен после монтирования компонента
+  useEffect(() => {
+    // Принудительно обновляем стили маркера
+    if (typeof window !== 'undefined') {
+      try {
+        const style = document.createElement('style');
+        style.textContent = `
+          .leaflet-marker-icon {
+            width: 25px !important;
+            height: 41px !important;
+            display: block !important;
+            visibility: visible !important;
+            z-index: 999 !important;
+          }
+          .leaflet-marker-shadow {
+            width: 41px !important;
+            height: 41px !important;
+            display: block !important;
+            visibility: visible !important;
+            z-index: 998 !important;
+          }
+        `;
+        document.head.appendChild(style);
+      } catch (e) {
+        console.error('Ошибка добавления стилей маркера:', e);
+      }
+    }
+
+    // Обрабатываем случай, когда компонент используется в предпросмотре
+    if (shouldUseDetailedZoom) {
+      console.log('Карта в режиме предпросмотра, активируем детальный зум и принудительное отображение маркера');
+      setForceZoom(true);
+    }
+  }, [shouldUseDetailedZoom]);
   
   // Установка начальных значений
   useEffect(() => {

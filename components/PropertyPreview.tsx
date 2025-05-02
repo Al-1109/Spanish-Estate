@@ -5,11 +5,31 @@ import { IoBed, IoWater } from 'react-icons/io5';
 import { Property } from '@/types/property';
 import dynamic from 'next/dynamic';
 
+// Добавляем стили для правильного отображения маркера Leaflet (если их нет в глобальных стилях)
+const MapStyles = () => (
+  <style jsx global>{`
+    .leaflet-marker-icon {
+      width: 25px !important;
+      height: 41px !important;
+      display: block !important;
+      visibility: visible !important;
+      z-index: 999 !important;
+    }
+    .leaflet-marker-shadow {
+      width: 41px !important;
+      height: 41px !important;
+      display: block !important;
+      visibility: visible !important;
+      z-index: 998 !important;
+    }
+  `}</style>
+);
+
 // Динамический импорт компонента карты для предотвращения ошибок SSR
 const DynamicMapComponent = dynamic(() => import('@/app/admin/properties/create/components/map/LeafletMap'), {
   ssr: false,
   loading: () => (
-    <div className="h-52 w-full bg-gray-100 flex items-center justify-center">
+    <div className="h-[400px] w-full bg-gray-100 flex items-center justify-center">
       <p className="text-gray-500">Загрузка карты...</p>
     </div>
   )
@@ -21,6 +41,36 @@ interface PropertyPreviewProps {
 }
 
 const PropertyPreview: React.FC<PropertyPreviewProps> = ({ property, mode = 'compact' }) => {
+  // Добавим глобальные стили вне зависимости от режима
+  React.useEffect(() => {
+    // Принудительно добавляем стили для маркеров при монтировании компонента
+    if (typeof window !== 'undefined') {
+      const style = document.createElement('style');
+      style.textContent = `
+        .leaflet-marker-icon {
+          width: 25px !important;
+          height: 41px !important;
+          display: block !important;
+          visibility: visible !important;
+          z-index: 999 !important;
+        }
+        .leaflet-marker-shadow {
+          width: 41px !important;
+          height: 41px !important;
+          display: block !important;
+          visibility: visible !important;
+          z-index: 998 !important;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      return () => {
+        // Удаляем стили при размонтировании
+        document.head.removeChild(style);
+      };
+    }
+  }, []);
+
   // Значения по умолчанию для случаев, когда данные не заполнены
   const title = property.title?.ru || 'Без названия';
   const description = property.description?.ru || 'Без описания';
@@ -166,6 +216,7 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = ({ property, mode = 'com
   // Полный вид (детальная карточка)
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <MapStyles />
       <div className="relative h-96 w-full">
         {property.images && property.images.length > 0 ? (
           <img 
@@ -198,15 +249,31 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = ({ property, mode = 'com
          property.location.coordinates.lng && (
           <div className="mb-6 mt-4 relative">
             <h2 className="text-lg font-semibold mb-3">Расположение</h2>
-            <div className="h-52 w-full rounded-md overflow-hidden border border-gray-200 relative z-10">
-              <DynamicMapComponent
-                position={[property.location.coordinates.lat, property.location.coordinates.lng]}
-                setPosition={() => {}}
-                addressWasSelected={true}
-                addressJustSelected={false}
-                shouldUseDetailedZoom={true}
-                onAddressFound={() => {}}
-              />
+            <div className="h-[400px] w-full rounded-md overflow-hidden border border-gray-200 relative z-10">
+              <div id="map-preview-container" className="w-full h-full relative">
+                <DynamicMapComponent
+                  position={[property.location.coordinates.lat, property.location.coordinates.lng]}
+                  setPosition={() => {}}
+                  addressWasSelected={true}
+                  addressJustSelected={false}
+                  shouldUseDetailedZoom={true}
+                  initialZoom={17}
+                  onAddressFound={() => {}}
+                  fullscreen={false}
+                />
+              </div>
+              
+              {/* Скрипт для гарантированного отображения маркера */}
+              <script dangerouslySetInnerHTML={{ __html: `
+                setTimeout(() => {
+                  const markers = document.querySelectorAll('.leaflet-marker-icon, .leaflet-marker-shadow');
+                  markers.forEach(marker => {
+                    marker.style.display = 'block';
+                    marker.style.visibility = 'visible';
+                    marker.style.zIndex = '999';
+                  });
+                }, 500);
+              `}} />
             </div>
           </div>
         )}
