@@ -8,6 +8,7 @@ import { Property } from '@/types/property';
 import { createProperty, updateProperty, getPropertyById } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import LocationStep from './components/LocationStep';
+import BasicInfoStep from './components/BasicInfoStep';
 import PreviewDrawer from '@/components/PreviewDrawer';
 
 // Компонент-заглушка для всех шагов
@@ -60,7 +61,7 @@ export default function CreatePropertyPage() {
     {
       id: 'basic-info',
       title: 'Основная информация',
-      component: <PlaceholderStep title="Основная информация" />
+      component: <BasicInfoStep />
     },
     {
       id: 'location',
