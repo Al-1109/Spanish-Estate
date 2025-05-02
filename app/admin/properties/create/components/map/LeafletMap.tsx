@@ -399,7 +399,12 @@ const StableMarker = ({ position, draggable, eventHandlers, markerRef }: {
     
     // Добавляем обработчики событий
     if (eventHandlers.dragend) {
-      marker.on('dragend', eventHandlers.dragend);
+      marker.on('dragend', (e: L.LeafletEvent) => {
+        // Вызываем обработчик с текущим маркером в качестве цели события
+        eventHandlers.dragend({
+          target: marker
+        });
+      });
     }
     
     if (eventHandlers.add) {
@@ -673,12 +678,33 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
           position={position}
           draggable={true}
           eventHandlers={{
-            dragend: (e: any) => {
+            dragend: (e: L.LeafletEvent) => {
               const marker = e.target;
               const position = marker.getLatLng();
               const newPosition: [number, number] = [position.lat, position.lng];
               console.log(`Маркер перемещен: ${newPosition}`);
               setPosition(newPosition);
+              
+              // Выполняем обратное геокодирование для обновления адреса
+              if (onAddressFound) {
+                try {
+                  console.log('Выполняем обратное геокодирование после перемещения маркера...');
+                  (async () => {
+                    const addressDetails = await reverseGeocode(position.lat, position.lng);
+                    if (addressDetails) {
+                      console.log('Получены данные адреса после перемещения маркера:', addressDetails);
+                      onAddressFound(addressDetails);
+                      
+                      // Устанавливаем детальный зум для лучшего отображения здания
+                      if (mapRef.current) {
+                        mapRef.current.setView(newPosition, detailedZoom, { animate: true });
+                      }
+                    }
+                  })();
+                } catch (error) {
+                  console.error('Ошибка при получении адреса после перемещения маркера:', error);
+                }
+              }
               
               // Принудительно отображаем маркеры после перемещения
               setTimeout(forceMarkersVisible, 100);
