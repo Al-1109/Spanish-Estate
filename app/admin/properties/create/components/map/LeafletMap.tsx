@@ -6,12 +6,21 @@ import L from 'leaflet';
 // Важно: исправление для иконок Leaflet (должно быть в начале файла)
 if (typeof window !== 'undefined') {
   delete (L.Icon.Default.prototype as any)._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  
+  // Создаем собственную иконку маркера для гарантированного отображения
+  const DefaultIcon = L.icon({
     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
   });
-
+  
+  // Устанавливаем иконку по умолчанию
+  L.Marker.prototype.options.icon = DefaultIcon;
+  
   // Дополнительно явно задаём стили для иконок маркеров
   const style = document.createElement('style');
   style.textContent = `
@@ -21,6 +30,7 @@ if (typeof window !== 'undefined') {
       display: block !important;
       visibility: visible !important;
       z-index: 999 !important;
+      pointer-events: auto !important;
     }
     .leaflet-marker-shadow {
       width: 41px !important;
@@ -28,6 +38,19 @@ if (typeof window !== 'undefined') {
       display: block !important;
       visibility: visible !important;
       z-index: 998 !important;
+      pointer-events: none !important;
+    }
+    .leaflet-container {
+      z-index: 1;
+    }
+    .leaflet-pane {
+      z-index: 10 !important;
+    }
+    .leaflet-marker-pane {
+      z-index: 600 !important;
+    }
+    .leaflet-shadow-pane {
+      z-index: 500 !important;
     }
   `;
   document.head.appendChild(style);
@@ -315,6 +338,102 @@ const MapController = ({
   return null;
 };
 
+// Функция для принудительного отображения маркеров
+const forceMarkersVisible = () => {
+  if (typeof window === 'undefined') return;
+  
+  // Находим все маркеры на странице
+  const markers = document.querySelectorAll('.leaflet-marker-icon, .leaflet-marker-shadow');
+  
+  // Устанавливаем стили напрямую
+  markers.forEach(marker => {
+    const element = marker as HTMLElement;
+    element.style.display = 'block';
+    element.style.visibility = 'visible';
+    
+    // Для иконок маркера устанавливаем высокий z-index
+    if (marker.classList.contains('leaflet-marker-icon')) {
+      element.style.zIndex = '999';
+      element.style.pointerEvents = 'auto';
+    } else {
+      // Для теней
+      element.style.zIndex = '998';
+      element.style.pointerEvents = 'none';
+    }
+  });
+};
+
+// Маркер Leaflet с принудительным отображением
+const StableMarker = ({ position, draggable, eventHandlers, markerRef }: { 
+  position: [number, number], 
+  draggable: boolean, 
+  eventHandlers: any,
+  markerRef: React.MutableRefObject<L.Marker | null>
+}) => {
+  const map = useMap();
+  
+  // Создаем маркер при монтировании компонента
+  useEffect(() => {
+    // Создаем иконку специально для этого маркера
+    const icon = L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    
+    // Создаем маркер
+    const marker = L.marker(position, {
+      icon,
+      draggable
+    });
+    
+    // Добавляем маркер на карту
+    marker.addTo(map);
+    
+    // Сохраняем ссылку на маркер
+    markerRef.current = marker;
+    
+    // Добавляем обработчики событий
+    if (eventHandlers.dragend) {
+      marker.on('dragend', eventHandlers.dragend);
+    }
+    
+    if (eventHandlers.add) {
+      // Вызываем обработчик события добавления маркера
+      eventHandlers.add();
+    }
+    
+    // Принудительно обновляем стили маркера
+    setTimeout(() => {
+      const markerElement = marker.getElement();
+      if (markerElement) {
+        markerElement.style.display = 'block';
+        markerElement.style.visibility = 'visible';
+        markerElement.style.zIndex = '999';
+      }
+      
+      const shadowElement = marker.getElement()?.nextSibling as HTMLElement;
+      if (shadowElement) {
+        shadowElement.style.display = 'block';
+        shadowElement.style.visibility = 'visible';
+        shadowElement.style.zIndex = '998';
+      }
+    }, 100);
+    
+    // Очищаем при размонтировании
+    return () => {
+      marker.off('dragend', eventHandlers.dragend);
+      map.removeLayer(marker);
+    };
+  }, [map, position, draggable, eventHandlers, markerRef]);
+  
+  return null;
+};
+
 // Основной компонент карты
 const LeafletMap: React.FC<LeafletMapProps> = ({ 
   position, 
@@ -396,6 +515,22 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
     }
   }, [initialZoom, position, mapRef.current]);
   
+  // Создаем таймер для периодической проверки и принудительного отображения маркеров
+  useEffect(() => {
+    // Запускаем принудительное отображение маркеров сразу
+    forceMarkersVisible();
+    
+    // Создаем интервал для периодической проверки маркеров
+    const markerCheckInterval = setInterval(() => {
+      forceMarkersVisible();
+    }, 500); // Проверяем каждые 500 мс
+    
+    // Очищаем интервал при размонтировании компонента
+    return () => {
+      clearInterval(markerCheckInterval);
+    };
+  }, []);
+  
   // Обработчик клика на карте
   const handleMapClick = async (e: L.LeafletMouseEvent) => {
     console.log(`Клик на карте: ${e.latlng.lat}, ${e.latlng.lng}`);
@@ -459,6 +594,10 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
       if (mapRef.current) {
         console.log(`Установка прямого зума на ${detailedZoom} для позиции ${position}`);
         mapRef.current.setView(position, 18, { animate: true });
+        
+        // Принудительно отображаем маркеры после установки вида
+        setTimeout(forceMarkersVisible, 100);
+        setTimeout(forceMarkersVisible, 500);
       }
     }
   }, [position, addressJustSelected, mapReady]);
@@ -517,7 +656,11 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
         zoom={initialZoom}
         style={mapContainerStyle}
         className="leaflet-container-fixed"
-        whenCreated={handleMapCreated}
+        whenCreated={(map) => {
+          handleMapCreated(map);
+          // Принудительно отображаем маркеры после создания карты
+          setTimeout(forceMarkersVisible, 100);
+        }}
         scrollWheelZoom={true}
       >
         <TileLayer
@@ -525,7 +668,8 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        <Marker 
+        {/* Используем собственную реализацию маркера для стабильности */}
+        <StableMarker
           position={position}
           draggable={true}
           eventHandlers={{
@@ -535,9 +679,16 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
               const newPosition: [number, number] = [position.lat, position.lng];
               console.log(`Маркер перемещен: ${newPosition}`);
               setPosition(newPosition);
+              
+              // Принудительно отображаем маркеры после перемещения
+              setTimeout(forceMarkersVisible, 100);
+            },
+            add: () => {
+              // Принудительно отображаем маркеры при добавлении на карту
+              setTimeout(forceMarkersVisible, 100);
             }
           }}
-          ref={markerRef}
+          markerRef={markerRef}
         />
         
         <MapReference />
@@ -559,7 +710,7 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
           z-index: 1;
         }
         .leaflet-pane {
-          z-index: 10;
+          z-index: 10 !important;
         }
         .leaflet-tile, 
         .leaflet-marker-icon, 
@@ -571,6 +722,21 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
           position: absolute;
           pointer-events: auto;
         }
+        .leaflet-marker-icon {
+          pointer-events: auto !important;
+          width: 25px !important;
+          height: 41px !important;
+          display: block !important;
+          visibility: visible !important;
+          z-index: 999 !important;
+        }
+        .leaflet-marker-shadow {
+          width: 41px !important;
+          height: 41px !important;
+          display: block !important;
+          visibility: visible !important;
+          z-index: 998 !important;
+        }
         .leaflet-tile-container {
           display: block !important;
           visibility: visible !important;
@@ -580,22 +746,54 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
       <script dangerouslySetInnerHTML={{ __html: `
         (function() {
           // Принудительное обновление размера карты после загрузки
-          setTimeout(function() {
+          function updateMaps() {
             var maps = document.querySelectorAll('.leaflet-container');
             for (var i = 0; i < maps.length; i++) {
               var map = maps[i];
-              var event = new Event('resize');
-              window.dispatchEvent(event);
-              
-              // Принудительный перерендер карты
-              if (map && map._leaflet_id) {
-                var leafletInstance = map._leaflet;
-                if (leafletInstance && leafletInstance.invalidateSize) {
-                  leafletInstance.invalidateSize(true);
+              try {
+                var event = new Event('resize');
+                window.dispatchEvent(event);
+                
+                // Принудительный перерендер карты
+                if (map && map._leaflet_id) {
+                  var leafletInstance = map._leaflet;
+                  if (leafletInstance && leafletInstance.invalidateSize) {
+                    leafletInstance.invalidateSize(true);
+                  }
                 }
+                
+                // Принудительно отображаем маркеры
+                var markers = document.querySelectorAll('.leaflet-marker-icon, .leaflet-marker-shadow');
+                markers.forEach(function(marker) {
+                  marker.style.display = 'block';
+                  marker.style.visibility = 'visible';
+                  if (marker.classList.contains('leaflet-marker-icon')) {
+                    marker.style.zIndex = '999';
+                    marker.style.pointerEvents = 'auto';
+                  } else {
+                    marker.style.zIndex = '998';
+                    marker.style.pointerEvents = 'none';
+                  }
+                });
+              } catch (e) {
+                console.error('Ошибка при обновлении карты:', e);
               }
             }
-          }, 500);
+          }
+          
+          // Вызываем функцию несколько раз с разными интервалами
+          setTimeout(updateMaps, 100);
+          setTimeout(updateMaps, 500);
+          setTimeout(updateMaps, 1000);
+          setTimeout(updateMaps, 2000);
+          
+          // Создаем интервал для периодической проверки
+          var interval = setInterval(updateMaps, 3000);
+          
+          // Очищаем интервал через 30 секунд
+          setTimeout(function() {
+            clearInterval(interval);
+          }, 30000);
         })();
       `}} />
       

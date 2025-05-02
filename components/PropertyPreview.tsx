@@ -14,6 +14,7 @@ const MapStyles = () => (
       display: block !important;
       visibility: visible !important;
       z-index: 999 !important;
+      pointer-events: auto !important;
     }
     .leaflet-marker-shadow {
       width: 41px !important;
@@ -21,6 +22,19 @@ const MapStyles = () => (
       display: block !important;
       visibility: visible !important;
       z-index: 998 !important;
+      pointer-events: none !important;
+    }
+    .leaflet-pane {
+      z-index: 10 !important;
+    }
+    .leaflet-marker-pane {
+      z-index: 600 !important;
+    }
+    .leaflet-shadow-pane {
+      z-index: 500 !important;
+    }
+    .leaflet-container {
+      z-index: 1;
     }
   `}</style>
 );
@@ -40,6 +54,28 @@ interface PropertyPreviewProps {
   mode?: 'compact' | 'full'; // compact - для карточки, full - для полного предпросмотра
 }
 
+// Функция для обеспечения видимости маркера
+const forceMarkersVisible = () => {
+  if (typeof window === 'undefined') return;
+  
+  setTimeout(() => {
+    const markers = document.querySelectorAll('.leaflet-marker-icon, .leaflet-marker-shadow');
+    markers.forEach(marker => {
+      const element = marker as HTMLElement;
+      element.style.display = 'block';
+      element.style.visibility = 'visible';
+      
+      if (marker.classList.contains('leaflet-marker-icon')) {
+        element.style.zIndex = '999';
+        element.style.pointerEvents = 'auto';
+      } else {
+        element.style.zIndex = '998';
+        element.style.pointerEvents = 'none';
+      }
+    });
+  }, 300);
+};
+
 const PropertyPreview: React.FC<PropertyPreviewProps> = ({ property, mode = 'compact' }) => {
   // Добавим глобальные стили вне зависимости от режима
   React.useEffect(() => {
@@ -53,6 +89,7 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = ({ property, mode = 'com
           display: block !important;
           visibility: visible !important;
           z-index: 999 !important;
+          pointer-events: auto !important;
         }
         .leaflet-marker-shadow {
           width: 41px !important;
@@ -60,13 +97,33 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = ({ property, mode = 'com
           display: block !important;
           visibility: visible !important;
           z-index: 998 !important;
+          pointer-events: none !important;
+        }
+        .leaflet-pane {
+          z-index: 10 !important;
+        }
+        .leaflet-marker-pane {
+          z-index: 600 !important;
+        }
+        .leaflet-shadow-pane {
+          z-index: 500 !important;
         }
       `;
       document.head.appendChild(style);
       
+      // Создаем интервал для периодической проверки маркеров
+      const interval = setInterval(forceMarkersVisible, 1000);
+      
+      // Вызываем несколько раз с разными задержками
+      forceMarkersVisible();
+      setTimeout(forceMarkersVisible, 500);
+      setTimeout(forceMarkersVisible, 1500);
+      setTimeout(forceMarkersVisible, 2500);
+      
       return () => {
-        // Удаляем стили при размонтировании
+        // Удаляем стили и очищаем интервал при размонтировании
         document.head.removeChild(style);
+        clearInterval(interval);
       };
     }
   }, []);
@@ -265,14 +322,37 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = ({ property, mode = 'com
               
               {/* Скрипт для гарантированного отображения маркера */}
               <script dangerouslySetInnerHTML={{ __html: `
-                setTimeout(() => {
-                  const markers = document.querySelectorAll('.leaflet-marker-icon, .leaflet-marker-shadow');
-                  markers.forEach(marker => {
-                    marker.style.display = 'block';
-                    marker.style.visibility = 'visible';
-                    marker.style.zIndex = '999';
-                  });
-                }, 500);
+                (function() {
+                  function updateMarkers() {
+                    const markers = document.querySelectorAll('.leaflet-marker-icon, .leaflet-marker-shadow');
+                    markers.forEach(marker => {
+                      marker.style.display = 'block';
+                      marker.style.visibility = 'visible';
+                      
+                      if (marker.classList.contains('leaflet-marker-icon')) {
+                        marker.style.zIndex = '999';
+                        marker.style.pointerEvents = 'auto';
+                      } else {
+                        marker.style.zIndex = '998';
+                        marker.style.pointerEvents = 'none';
+                      }
+                    });
+                  }
+                  
+                  // Вызываем несколько раз с разными задержками
+                  setTimeout(updateMarkers, 100);
+                  setTimeout(updateMarkers, 500);
+                  setTimeout(updateMarkers, 1000);
+                  setTimeout(updateMarkers, 2000);
+                  
+                  // Создаем интервал для периодической проверки
+                  const interval = setInterval(updateMarkers, 3000);
+                  
+                  // Очистка интервала через 30 секунд
+                  setTimeout(() => {
+                    clearInterval(interval);
+                  }, 30000);
+                })();
               `}} />
             </div>
           </div>
